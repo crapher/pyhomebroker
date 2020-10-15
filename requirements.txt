@@ -1,0 +1,5 @@
+numpy>=1.18.1
+pandas>=1.0.0
+pyquery>=1.2
+signalr-client-threads>=0.0.12
+requests>=2.21.0
