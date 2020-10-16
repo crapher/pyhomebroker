@@ -16,98 +16,98 @@ Pyhomebroker has two modules, the online module and the history module.
 
 The online module handles the connection and subscription with the server and allows a client to subscribe to the home broker platform to receive all the events changes.
 
-	from pyhomebroker import HomeBroker
-	
-	hb = HomeBroker(
-		# Broker ByMA id
-		81, 
-		# Event triggered when the connection is open
-		on_open=on_open_callback, 
-		# Event triggered when a new quote is received from the personal portfolio
-		on_personal_portfolio=on_personal_portfolio_callback, 
-		# Event triggered when a new quote is received from any of the supported security boards
-		on_securities=on_securities_callback, 
-		# Event triggered when a new quote is received from the options board
-		on_options=on_options_callback, 
-		# Event triggered when a new quote is received from the repos board
-		on_repos=on_repos_callback, 
-		# Event triggered when a new quote is received from the order book (level 2)
-		on_order_book=on_order_book_callback, 
-		# Event triggered when there is an error with the connection
-		on_error=on_error_callback
-		# Event triggered when the connection is closed
-		on_close=on_close_callback)
+    from pyhomebroker import HomeBroker
+    
+    hb = HomeBroker(
+        # Broker ByMA id
+        81, 
+        # Event triggered when the connection is open
+        on_open=on_open_callback, 
+        # Event triggered when a new quote is received from the personal portfolio
+        on_personal_portfolio=on_personal_portfolio_callback, 
+        # Event triggered when a new quote is received from any of the supported security boards
+        on_securities=on_securities_callback, 
+        # Event triggered when a new quote is received from the options board
+        on_options=on_options_callback, 
+        # Event triggered when a new quote is received from the repos board
+        on_repos=on_repos_callback, 
+        # Event triggered when a new quote is received from the order book (level 2)
+        on_order_book=on_order_book_callback, 
+        # Event triggered when there is an error with the connection
+        on_error=on_error_callback
+        # Event triggered when the connection is closed
+        on_close=on_close_callback)
 
-	# Authenticate with the homebroker platform
-	hb.auth.login(dni='12345678', user='user', password='password', raise_exception=True)
-	
-	# Connect to the server
-	hb.online.connect()
-	
-	# Subscribe to personal porfolio
-	hb.online.subscribe_personal_portfolio()
-	
-	# Subscribe to security board (bluechips, general_board, cedears, government_bonds, short_term_government_bonds, corporate_bonds)
-	hb.online.subscribe_securities('bluechips','48hs')
-	
-	# Subscribe to options board
-	hb.online.subscribe_options()
-	
-	# Subscribe to repos board
-	hb.online.subscribe_repos()
-	
-	# Subscribe to order book of an specific asset
-	hb.online.subscribe_order_book('GGAL', '48hs')
-	
-	# Unsubscribe from the order book of an specific asset
-	hb.online.unsubscribe_order_book('GGAL', '48hs')
-	
-	# Unsubscribe from repos board
-	hb.online.unsubscribe_repos()
-	
-	# Unsubscribe to options board
-	hb.online.unsubscribe_options()
-	
-	# Unsubscribe from a security board (bluechips, general_board, cedears, government_bonds, short_term_government_bonds, corporate_bonds)
-	hb.online.unsubscribe_securities('bluechips','48hs')
-	
-	# Unsubscribe from personal porfolio
-	hb.online.unsubscribe_personal_portfolio()
-	
-	# Disconnect from the server
-	hb.online.disconnect()
-	
-	# Callback signature for on_open event
-	def on_open_callback(online):
-		pass
-	
-	# Callback signature for on_personal_portfolio event
-	def on_personal_portfolio_callback(online, quotes):
-		pass
-	
-	# Callback signature for on_securities event
-	def on_securities_callback(online, quotes):
-		pass
-	
-	# Callback signature for on_options event
-	def on_options_callback(online, quotes):
-		pass
-	
-	# Callback signature for on_repos event
-	def on_repos_callback(online, quotes):
-		pass
-	
-	# Callback signature for on_order_book event
-	def on_order_book_callback(online, quotes):
-		pass
-	
-	# Callback signature for on_error event
-	def on_error_callback(online, error):
-		pass
-	
-	# Callback signature for on_close event
-	def on_close_callback(online):
-		pass
+    # Authenticate with the homebroker platform
+    hb.auth.login(dni='12345678', user='user', password='password', raise_exception=True)
+    
+    # Connect to the server
+    hb.online.connect()
+    
+    # Subscribe to personal porfolio
+    hb.online.subscribe_personal_portfolio()
+    
+    # Subscribe to security board (bluechips, general_board, cedears, government_bonds, short_term_government_bonds, corporate_bonds)
+    hb.online.subscribe_securities('bluechips','48hs')
+    
+    # Subscribe to options board
+    hb.online.subscribe_options()
+    
+    # Subscribe to repos board
+    hb.online.subscribe_repos()
+    
+    # Subscribe to order book of an specific asset
+    hb.online.subscribe_order_book('GGAL', '48hs')
+    
+    # Unsubscribe from the order book of an specific asset
+    hb.online.unsubscribe_order_book('GGAL', '48hs')
+    
+    # Unsubscribe from repos board
+    hb.online.unsubscribe_repos()
+    
+    # Unsubscribe to options board
+    hb.online.unsubscribe_options()
+    
+    # Unsubscribe from a security board (bluechips, general_board, cedears, government_bonds, short_term_government_bonds, corporate_bonds)
+    hb.online.unsubscribe_securities('bluechips','48hs')
+    
+    # Unsubscribe from personal porfolio
+    hb.online.unsubscribe_personal_portfolio()
+    
+    # Disconnect from the server
+    hb.online.disconnect()
+    
+    # Callback signature for on_open event
+    def on_open_callback(online):
+        pass
+    
+    # Callback signature for on_personal_portfolio event
+    def on_personal_portfolio_callback(online, quotes):
+        pass
+    
+    # Callback signature for on_securities event
+    def on_securities_callback(online, quotes):
+        pass
+    
+    # Callback signature for on_options event
+    def on_options_callback(online, quotes):
+        pass
+    
+    # Callback signature for on_repos event
+    def on_repos_callback(online, quotes):
+        pass
+    
+    # Callback signature for on_order_book event
+    def on_order_book_callback(online, quotes):
+        pass
+    
+    # Callback signature for on_error event
+    def on_error_callback(online, error):
+        pass
+    
+    # Callback signature for on_close event
+    def on_close_callback(online):
+        pass
 
 The file **[example_online.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_online.py)** shows a complete working out of the box example.
 
@@ -115,17 +115,17 @@ The file **[example_online.py](https://github.com/crapher/pyhomebroker/blob/mast
 
 The history module is used to download historical daily data.
 
-	from pyhomebroker import HomeBroker
+    from pyhomebroker import HomeBroker
 
-	hb = HomeBroker(
-		# Broker ByMA id
-		81)
+    hb = HomeBroker(
+        # Broker ByMA id
+        81)
 
-	# Authenticate with the homebroker platform
-	hb.auth.login(dni='12345678', user='user', password='password', raise_exception=True)
+    # Authenticate with the homebroker platform
+    hb.auth.login(dni='12345678', user='user', password='password', raise_exception=True)
 
-	# Get daily information from platform 
-	data = hb.history.get_daily_history('GGAL', datetime.date(2015, 1, 1), datetime.date(2020, 1, 1))
+    # Get daily information from platform 
+    data = hb.history.get_daily_history('GGAL', datetime.date(2015, 1, 1), datetime.date(2020, 1, 1))
 
 The file **[example_history.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_history.py)** shows a complete working out of the box example.
 
@@ -148,7 +148,7 @@ One of the dependencies (signalr-client-threads) does not have proxy support whe
 
 Install pyhomebroker from PyPI:
 
-	$ pip install pyhomebroker --upgrade --no-cache-dir
+    $ pip install pyhomebroker --upgrade --no-cache-dir
 
 Install development version of pyhomebroker from github:
 
