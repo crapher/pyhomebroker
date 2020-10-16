@@ -41,6 +41,11 @@ brokers = [
     'page': 'https://operar.maestroyhuerres.com'
     },
     {
+    'broker_id': 153,
+    'name': 'Bolsa de Comercio del Chaco',
+    'page': 'https://clientes.bcch.org.ar'
+    },
+    {
     'broker_id': 164,
     'name': 'Prosecurities S.A.',
     'page': 'https://operar.psec.com.ar'

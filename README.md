@@ -136,6 +136,7 @@ The file **[example_history.py](https://github.com/crapher/pyhomebroker/blob/mas
 |Proficio Investment S.A.|20|
 |Tomar Inversiones S.A.|81|
 |Maestro y Huerres S.A.|127|
+|Bolsa de Comercio del Chaco|153|
 |Prosecurities S.A.|164|
 |Invertir en Bolsa S.A.|203|
 |Futuro Bursátil S.A.|209|
