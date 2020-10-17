@@ -36,6 +36,11 @@ brokers = [
     'page': 'https://clientes2.tminversiones.com.ar'
     },
     {
+    'broker_id': 88,
+    'name': 'Bell Investments S.A.',
+    'page': 'https://operar.bellbursatil.com'
+    },
+    {
     'broker_id': 127,
     'name': 'Maestro y Huerres S.A',
     'page': 'https://operar.maestroyhuerres.com'

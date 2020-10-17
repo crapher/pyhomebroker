@@ -135,6 +135,7 @@ The file **[example_history.py](https://github.com/crapher/pyhomebroker/blob/mas
 |Buenos Aires Valores S.A.|12|
 |Proficio Investment S.A.|20|
 |Tomar Inversiones S.A.|81|
+|Bell Investments S.A.|88|
 |Maestro y Huerres S.A.|127|
 |Bolsa de Comercio del Chaco|153|
 |Prosecurities S.A.|164|
