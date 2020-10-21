@@ -115,6 +115,8 @@ class OnlineSignalR:
 
             if self._proxies:
                 session.proxies.update(self._proxies)
+                
+            session.headers = {'User-Agent':__user_agent__}
             
             self._connection = Connection(url, session)
             self._hub = self._connection.register_hub('stockpriceshub')
