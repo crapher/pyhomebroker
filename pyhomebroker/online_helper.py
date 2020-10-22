@@ -55,16 +55,18 @@ def convert_to_numeric_columns(df, columns):
 def process_personal_portfolio(df):
 
     result_index = ['symbol', 'settlement']
-    filter_columns = ['Symbol', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'MaturityDate', 'StrikePrice', 'PutOrCall']
-    result_columns = ['symbol', 'settlement', 'bidsize', 'bid', 'ask', 'asksize', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'expiration', 'strike', 'kind']
+    filter_columns = ['Symbol', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'MaturityDate', 'StrikePrice', 'PutOrCall', 'Issuer']
+    result_columns = ['symbol', 'settlement', 'bidsize', 'bid', 'ask', 'asksize', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'expiration', 'strike', 'kind', 'underlying_asset']
     numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bidsize', 'bid', 'asksize', 'ask', 'previous_close', 'strike']
-    options_columns = ['MaturityDate','StrikePrice','PutOrCall']
+    numeric_options_columns = ['MaturityDate', 'StrikePrice']
+    alpha_option_columns = ['PutOrCall', 'Issuer']
     
     if not df.empty:
         df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
-        df.loc[df.StrikePrice == 0, options_columns] = np.nan
+        df.loc[df.StrikePrice == 0, alpha_option_columns] = ''
+        df.loc[df.StrikePrice == 0, numeric_options_columns] = np.nan
         df.MaturityDate = pd.to_datetime(df.MaturityDate, format='%Y%m%d', errors='coerce')
-        df.PutOrCall = df.PutOrCall.apply(lambda x: __callput[x] if x in __callput else __callput[0])    
+        df.PutOrCall = df.PutOrCall.apply(lambda x: __callput[x] if x in __callput else __callput[0])
         df.Term = df.Term.apply(lambda x: __settlements_int[x] if x in __settlements_int else '')
         
         df = df[filter_columns].copy()
@@ -72,7 +74,7 @@ def process_personal_portfolio(df):
         
         df = convert_to_numeric_columns(df, numeric_columns)
     else:
-        df = pd.DataFrame(columns=result_columns)   
+        df = pd.DataFrame(columns=result_columns)
     
     df = df.set_index(result_index)
     return df
