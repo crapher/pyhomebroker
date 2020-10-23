@@ -142,7 +142,7 @@ Historical intraday data example:
     # Authenticate with the homebroker platform
     hb.auth.login(dni='12345678', user='user', password='password', raise_exception=True)
 
-    # Get daily information from platform 
+    # Get intraday information from platform
     data = hb.history.get_intraday_history('PAMP')
 
 The file **[example_intraday_history.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_intraday_history.py)** shows a complete working out of the box example.
