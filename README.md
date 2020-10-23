@@ -113,7 +113,9 @@ The file **[example_online.py](https://github.com/crapher/pyhomebroker/blob/mast
 
 ### History Module
 
-The history module is used to download historical daily data.
+The history module is used to download historical daily data and historical intraday data (only for current day).
+
+Historical daily data example:
 
     from pyhomebroker import HomeBroker
 
@@ -127,7 +129,23 @@ The history module is used to download historical daily data.
     # Get daily information from platform 
     data = hb.history.get_daily_history('GGAL', datetime.date(2015, 1, 1), datetime.date(2020, 1, 1))
 
-The file **[example_history.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_history.py)** shows a complete working out of the box example.
+The file **[example_daily_history.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_daily_history.py)** shows a complete working out of the box example.
+
+Historical intraday data example:
+
+    from pyhomebroker import HomeBroker
+
+    hb = HomeBroker(
+        # Broker ByMA id
+        81)
+
+    # Authenticate with the homebroker platform
+    hb.auth.login(dni='12345678', user='user', password='password', raise_exception=True)
+
+    # Get daily information from platform 
+    data = hb.history.get_intraday_history('PAMP')
+
+The file **[example_intraday_history.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_intraday_history.py)** shows a complete working out of the box example.
 
 ## Supported Brokers
 | Broker|Byma Id|

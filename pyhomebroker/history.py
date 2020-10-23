@@ -29,6 +29,9 @@ import numpy as np
 
 class History:
     
+    # Difference between UTC & Argentina Time Zone
+    __hours = 3
+    
     def __init__(self, auth, proxy_url=None):
         """
         Class constructor.
@@ -99,6 +102,61 @@ class History:
         
         return df
 
+    def get_intraday_history(self, symbol, from_date=None, to_date=None):
+        """
+        Returns the historical quotes of the specified ticker narroweed by the date.
+        
+        Parameters
+        ----------
+        symbol : str
+            The name of the symbol used to retrieve the information.
+        from_date : datetime
+            The start date (Argentina Time Zone) used to filter the information. 
+        to_date : datetime
+            The end date (Argentina Time Zone) used to filter the information.
+        
+        Raises
+        ------
+        pyhomebroker.exceptions.SessionException
+            If the user is not logged in.
+        requests.exceptions.HTTPError
+            There is a problem related to the HTTP request.
+        """
+        
+        if not self._auth.is_user_logged_in:
+            raise SessionException('User is not logged in')
+        
+        headers = {
+            'User-Agent': __user_agent__,
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        
+        if from_date == None:
+            from_date = datetime.date.today()
+
+        if to_date == None:
+            to_date = from_date + datetime.timedelta(days=1)
+    
+        from_date = from_date + datetime.timedelta(seconds=self.__hours * 3600)
+        to_date = to_date + datetime.timedelta(seconds=self.__hours * 3600)
+        
+        url = '{}/Intradiario/history?symbol={}&resolution=1&from={}&to={}'.format(
+            self._auth.broker['page'], 
+            symbol.upper(), 
+            self.__convert_datetime_to_epoch(from_date), 
+            self.__convert_datetime_to_epoch(to_date))
+                                            
+        resp = rq.get(url, headers=headers, cookies=self._auth.cookies, proxies=self._proxies)
+        resp.raise_for_status()   
+        resp = resp.json()
+        
+        df = pd.DataFrame({'date': resp['t'], 'open': resp['o'], 'high': resp['h'], 'low': resp['l'], 'close': resp['c'], 'volume': resp['v']})
+        df.date = pd.to_datetime(df.date, unit='s') - pd.DateOffset(seconds=self.__hours * 3600)
+        df.volume = df.volume.astype(int)
+        
+        return df
+        
 #########################
 #### PRIVATE METHODS ####
 #########################
