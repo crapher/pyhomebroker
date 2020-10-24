@@ -157,6 +157,7 @@ The file **[example_intraday_history.py](https://github.com/crapher/pyhomebroker
 |Maestro y Huerres S.A.|127|
 |Bolsa de Comercio del Chaco|153|
 |Prosecurities S.A.|164|
+|Alfy Inversiones S.A.|201|
 |Invertir en Bolsa S.A.|203|
 |Futuro Bursátil S.A.|209|
 
