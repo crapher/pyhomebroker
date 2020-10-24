@@ -56,6 +56,11 @@ brokers = [
     'page': 'https://operar.psec.com.ar'
     },
     {
+    'broker_id': 201,
+    'name': 'Alfy Inversiones S.A.',
+    'page': 'https://acceso.alfyinversiones.com.ar'
+    },
+    {
     'broker_id': 203,
     'name': 'Invertir en Bolsa S.A.',
     'page': 'https://clientesv2.invertirenbolsa.com.ar'
