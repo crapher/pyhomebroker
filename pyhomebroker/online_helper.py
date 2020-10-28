@@ -41,6 +41,14 @@ __callput = {
     1: 'CALL', 
     2: 'PUT'}
 
+__group_map = {
+    'accionesLideres': 'bluechips', 
+    'panelGeneral': 'general_board', 
+    'cedears': 'cedears', 
+    'rentaFija': 'government_bonds',
+    'letes': 'short_term_government_bonds', 
+    'obligaciones': 'corporate_bonds'}
+    
 ############################
 ## PROCESS JSON DOCUMENTS ##
 ############################
@@ -82,13 +90,14 @@ def process_personal_portfolio(df):
 def process_securities(df):
    
     result_index = ['symbol', 'settlement']
-    filter_columns = ['Symbol', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate']
-    result_columns = ['symbol', 'settlement', 'bidsize', 'bid', 'ask', 'asksize', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime']
+    filter_columns = ['Symbol', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'Panel']
+    result_columns = ['symbol', 'settlement', 'bidsize', 'bid', 'ask', 'asksize', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'group']
     numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bidsize', 'bid', 'asksize', 'ask', 'previous_close']
     
     if not df.empty:
         df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
         df.Term = df.Term.apply(lambda x: __settlements_int[x] if x in __settlements_int else '')
+        df.Panel = df.Panel.apply(lambda x: __group_map[x] if x in __group_map else '')
         
         df = df[filter_columns].copy()
         df.columns = result_columns 
