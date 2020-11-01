@@ -56,6 +56,11 @@ brokers = [
     'page': 'https://operar.psec.com.ar'
     },
     {
+    'broker_id': 186,
+    'name': 'Servente y Cia. S.A.',
+    'page': 'http://clientes.serventeycia.com'
+    },
+    {
     'broker_id': 201,
     'name': 'Alfy Inversiones S.A.',
     'page': 'https://acceso.alfyinversiones.com.ar'
