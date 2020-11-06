@@ -21,7 +21,7 @@
 
 import random
 
-__version__ = '0.1.2'
+__version__ = '0.2'
 __author__ = 'Diego Degese'
 __user_agent__ = random.choice([
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',

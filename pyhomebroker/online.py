@@ -163,7 +163,7 @@ class Online:
             raise SessionException('Connection is not open')
 
         df = self._scrapping.get_personal_portfolio()
-        self.__internal_on_personal_portfolio(df)
+        self.__internal_on_personal_portfolio(df.copy())
         
         for _, row in df.reset_index().iterrows():
             settlement = helper.get_settlement_for_request(row['settlement'], row['symbol'])            
