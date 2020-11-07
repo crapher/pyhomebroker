@@ -143,6 +143,13 @@ class Online:
         
         self._signalr.disconnect()
     
+    def is_connected(self):
+        """
+        Returns if the signalR server is connected
+        """
+        
+        return self._signalr.is_connected
+        
     def subscribe_personal_portfolio(self):
         """
         Subscribe to the personal portfolio.
@@ -387,12 +394,12 @@ class Online:
 
         if not symbol:
             raise DataException('Symbol is not assigned')
-
-        if not settlement:
-            raise DataException('Settlement is not assigned')
-
+        
         symbol = symbol.upper()
         settlement = helper.get_settlement_for_request(settlement, symbol)
+        
+        df = self._scrapping.get_order_book(symbol, settlement)
+        self.__internal_on_order_book(df)
         
         group_name = '{}*{}*cj'.format(symbol, settlement)
         self._signalr.join_group(group_name)
