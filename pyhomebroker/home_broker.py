@@ -65,9 +65,11 @@ class HomeBroker:
             This function has 2 arguments.
                 The 1st argument is the callable object.
                 The 2nd argument is the dataframe with the quotes.
-        on_error: function(exception), optional
+        on_error : function(exception, connection_lost), optional
             Callable object which is called when we get error.
-            This function has 1 arguments. The argument is the exception object.
+            This function has 2 arguments.
+                The 1st argument is the exception object.
+                The 2nd argument is if the connection was lost due to the error.
         on_close: function(self), optional
             Callable object which is called when closed the connection.
             This function has one argument. The argument is the callable object.

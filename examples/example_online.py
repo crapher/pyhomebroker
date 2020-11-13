@@ -86,10 +86,10 @@ def on_order_book(online, quotes):
     print('------------------ Order Book (Level 2) ------------------')
     print(quotes)
     
-def on_error(online, error):
+def on_error(online, exception, connection_lost):
     
     print('@@@@@@@@@@@@@@@@@@@@@@@@@ Error @@@@@@@@@@@@@@@@@@@@@@@@@@')
-    print(error)
+    print(exception)
 
 def on_close(online):
 

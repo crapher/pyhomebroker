@@ -102,7 +102,7 @@ The online module handles the connection and subscription with the server and al
         pass
     
     # Callback signature for on_error event
-    def on_error_callback(online, error):
+    def on_error_callback(online, exception, connection_lost):
         pass
     
     # Callback signature for on_close event

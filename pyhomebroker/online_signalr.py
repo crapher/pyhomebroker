@@ -60,9 +60,11 @@ class OnlineSignalR:
         on_order_book : function(quotes), optional
             Callable object which is called when the order book data (level 2) is received.
             This function has 1 argument. The argument is the dataframe with the quotes.
-        on_error : function(error), optional
+        on_error : function(exception, connection_lost), optional
             Callable object which is called when we get error.
-            This function has 1 arguments. The argument is the exception object.
+            This function has 2 arguments.
+                The 1st argument is the exception object.
+                The 2nd argument is if the connection was lost due to the error.
         on_close : function(), optional
             Callable object which is called when closed the connection.
             This function has no argument.
@@ -229,7 +231,7 @@ class OnlineSignalR:
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
-                    self._on_error(ex)
+                    self._on_error(ex, False)
                 except:
                     pass
                  
@@ -254,7 +256,7 @@ class OnlineSignalR:
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
-                    self._on_error(ex)
+                    self._on_error(ex, False)
                 except:
                     pass
              
@@ -277,11 +279,14 @@ class OnlineSignalR:
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
-                    self._on_error(ex)
+                    self._on_error(ex, False)
                 except:
                     pass
                 
     def __on_internal_exception(self, exception_type, value, traceback):
         
         if self._on_error:
-            self._on_error(exception_type(value))
+            try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
+                self._on_error(exception_type(value), True)
+            except:
+                pass

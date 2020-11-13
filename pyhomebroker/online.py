@@ -64,11 +64,12 @@ class Online:
             This function has 2 arguments.
                 The 1st argument is the callable object.
                 The 2nd argument is the dataframe with the quotes.
-        on_error : function(self, error), optional
+        on_error : function(self, exception, connection_lost), optional
             Callable object which is called when we get error.
-            This function has 2 arguments.
+            This function has 3 arguments.
                 The 1st argument is the callable object.
                 The 2nd argument is the exception object.
+                The 3rd argument is if the connection was lost due to the error.
         on_close : function(self), optional
             Callable object which is called when closed the connection.
             This function has one argument. The argument is the callable object.
@@ -170,8 +171,11 @@ class Online:
             raise SessionException('Connection is not open')
 
         df = self._scrapping.get_personal_portfolio()
-        self.__internal_on_personal_portfolio(df.copy())
-        
+        try:
+            self.__internal_on_personal_portfolio(df.copy())
+        except Exception as ex:
+            self.__internal_on_error(ex, False)
+            
         for _, row in df.reset_index().iterrows():
             settlement = helper.get_settlement_for_request(row['settlement'], row['symbol'])            
             group_name = '{}*{}*fv'.format(row['symbol'], settlement)
@@ -239,8 +243,11 @@ class Online:
         settlement = helper.get_settlement_for_request(settlement)
         
         df = self._scrapping.get_securities(board, settlement)
-        self.__internal_on_securities(df)
-                        
+        try:
+            self.__internal_on_securities(df)
+        except Exception as ex:
+            self.__internal_on_error(ex, False)
+                
         group_name = '{}-{}'.format(board, settlement)
         self._signalr.join_group(group_name)
     
@@ -302,7 +309,10 @@ class Online:
             raise SessionException('Connection is not open')
         
         df = self._scrapping.get_options()
-        self.__internal_on_options(df)
+        try:
+            self.__internal_on_options(df)
+        except Exception as ex:
+            self.__internal_on_error(ex, False)
 
         self._signalr.join_group('opciones-')
         
@@ -343,7 +353,10 @@ class Online:
             raise SessionException('Connection is not open')
         
         df = self._scrapping.get_repos()
-        self.__internal_on_repos(df)
+        try:
+            self.__internal_on_repos(df)
+        except Exception as ex:
+            self.__internal_on_error(ex, False)
 
         self._signalr.join_group('cauciones-')
         
@@ -399,7 +412,10 @@ class Online:
         settlement = helper.get_settlement_for_request(settlement, symbol)
         
         df = self._scrapping.get_order_book(symbol, settlement)
-        self.__internal_on_order_book(df)
+        try:
+            self.__internal_on_order_book(df)
+        except Exception as ex:
+            self.__internal_on_error(ex, False)
         
         group_name = '{}*{}*cj'.format(symbol, settlement)
         self._signalr.join_group(group_name)
@@ -466,11 +482,14 @@ class Online:
         if self._on_order_book and not quotes.empty:
             self._on_order_book(self, quotes)
         
-    def __internal_on_error(self, error):
+    def __internal_on_error(self, exception, connection_lost):
 
         if self._on_error:
-            self._on_error(self, error)
-            
+            try:
+                self._on_error(self, exception, connection_lost)
+            except:
+                pass
+                
     def __internal_on_close(self):
 
         if self._on_close:
