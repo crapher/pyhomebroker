@@ -170,13 +170,16 @@ class Online:
         if not self._signalr.is_connected:
             raise SessionException('Connection is not open')
 
-        df = self._scrapping.get_personal_portfolio()
+        df_portfolio, df_order_book = self._scrapping.get_personal_portfolio()
         try:
-            self.__internal_on_personal_portfolio(df.copy())
+            self.__internal_on_personal_portfolio(
+                df_portfolio.copy(),
+                df_order_book.copy())
+
         except Exception as ex:
             self.__internal_on_error(ex, False)
 
-        for _, row in df.reset_index().iterrows():
+        for _, row in df_portfolio.reset_index().iterrows():
             settlement = helper.get_settlement_for_request(row['settlement'], row['symbol'])
             group_name = '{}*{}*fv'.format(row['symbol'], settlement)
 
@@ -244,7 +247,8 @@ class Online:
 
         df = self._scrapping.get_securities(board, settlement)
         try:
-            self.__internal_on_securities(df)
+            self.__internal_on_securities(df.copy())
+
         except Exception as ex:
             self.__internal_on_error(ex, False)
 
@@ -310,7 +314,8 @@ class Online:
 
         df = self._scrapping.get_options()
         try:
-            self.__internal_on_options(df)
+            self.__internal_on_options(df.copy())
+
         except Exception as ex:
             self.__internal_on_error(ex, False)
 
@@ -354,7 +359,8 @@ class Online:
 
         df = self._scrapping.get_repos()
         try:
-            self.__internal_on_repos(df)
+            self.__internal_on_repos(df.copy())
+
         except Exception as ex:
             self.__internal_on_error(ex, False)
 
@@ -413,7 +419,8 @@ class Online:
 
         df = self._scrapping.get_order_book(symbol, settlement)
         try:
-            self.__internal_on_order_book(df)
+            self.__internal_on_order_book(df.copy())
+
         except Exception as ex:
             self.__internal_on_error(ex, False)
 
@@ -457,10 +464,10 @@ class Online:
         if self._on_open:
             self._on_open(self)
 
-    def __internal_on_personal_portfolio(self, quotes):
+    def __internal_on_personal_portfolio(self, portfolio_quotes, order_book_quotes):
 
-        if self._on_personal_portfolio and not quotes.empty:
-            self._on_personal_portfolio(self, quotes)
+        if self._on_personal_portfolio and (not portfolio_quotes.empty or not order_book_quotes.empty):
+            self._on_personal_portfolio(self, portfolio_quotes, order_book_quotes)
 
     def __internal_on_securities(self, quotes):
 

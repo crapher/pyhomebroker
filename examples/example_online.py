@@ -61,10 +61,12 @@ def on_open(online):
     
     print('=================== CONNECTION OPENED ====================')
 
-def on_personal_portfolio(online, quotes):
+def on_personal_portfolio(online, portfolio_quotes, order_book_quotes):
     
     print('------------------- Personal Portfolio -------------------')
-    print(quotes)
+    print(portfolio_quotes)
+    print('------------ Personal Portfolio - Order Book -------------')
+    print(order_book_quotes)
 
 def on_securities(online, quotes):
     

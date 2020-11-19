@@ -73,9 +73,12 @@ class OnlineScrapping:
         """
 
         data = self.__get_personal_portfolio()
-        df = pd.DataFrame(data['Result']) if data['Result'] else pd.DataFrame()
+        data = data['Result'] if data and data['Result'] else None
+        
+        df_portfolio = helper.process_personal_portfolio(data)
+        df_order_book = helper.process_personal_portfolio_order_book(data)
 
-        return helper.process_personal_portfolio(df)
+        return [df_portfolio, df_order_book]
 
     def get_securities(self, board, settlement):
         """

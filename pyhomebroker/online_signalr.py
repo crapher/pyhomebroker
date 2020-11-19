@@ -222,12 +222,15 @@ class OnlineSignalR:
     def __internal_personal_portfolio(self, data):
 
         try: #  Handle any exception processing the information or triggered by the user code
-            if self._on_personal_portfolio:
-                if data and not isinstance(data, list):
-                    data = [data]
-                df = pd.DataFrame(data if data else pd.DataFrame())
+            if data and not isinstance(data, list):
+                data = [data]
 
-                self._on_personal_portfolio(helper.process_personal_portfolio(df))
+            df_portfolio = helper.process_personal_portfolio(data)
+            df_order_book = helper.process_personal_portfolio_order_book(data)
+            
+            if self._on_personal_portfolio and data:
+                self._on_personal_portfolio(df_portfolio, df_order_book)
+
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)

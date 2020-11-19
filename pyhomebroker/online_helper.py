@@ -60,7 +60,7 @@ def convert_to_numeric_columns(df, columns):
 
     return df
 
-def process_personal_portfolio(df):
+def process_personal_portfolio(data):
 
     result_index = ['symbol', 'settlement']
     filter_columns = ['Symbol', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'MaturityDate', 'StrikePrice', 'PutOrCall', 'Issuer']
@@ -68,6 +68,8 @@ def process_personal_portfolio(df):
     numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bid_size', 'bid', 'ask_size', 'ask', 'previous_close', 'strike']
     numeric_options_columns = ['MaturityDate', 'StrikePrice']
     alpha_option_columns = ['PutOrCall', 'Issuer']
+
+    df = pd.DataFrame(data if data else pd.DataFrame())
 
     if not df.empty:
         df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
@@ -85,6 +87,22 @@ def process_personal_portfolio(df):
         df = pd.DataFrame(columns=result_columns)
 
     df = df.set_index(result_index)
+    return df
+
+def process_personal_portfolio_order_book(data):
+
+    if not data:
+        return pd.DataFrame()
+
+    df = pd.DataFrame()
+
+    for item in data:
+        df_buy = pd.DataFrame(item['StockDepthBox']['PriceDepthBox']['BuySide'])
+        df_sell = pd.DataFrame(item['StockDepthBox']['PriceDepthBox']['SellSide'])
+
+        order_book = process_order_book(item['Symbol'], item['Term'], df_buy, df_sell)
+        df = order_book if df.empty else pd.concat([df, order_book])
+
     return df
 
 def process_securities(df):

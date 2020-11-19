@@ -82,7 +82,7 @@ The online module handles the connection and subscription with the server and al
         pass
     
     # Callback signature for on_personal_portfolio event
-    def on_personal_portfolio_callback(online, quotes):
+    def on_personal_portfolio(online, portfolio_quotes, order_book_quotes):
         pass
     
     # Callback signature for on_securities event
