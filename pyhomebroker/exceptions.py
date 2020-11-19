@@ -21,10 +21,10 @@
 
 class SessionException(Exception):
     pass
-    
+
 class BrokerNotSupportedException(Exception):
     pass
-    
+
 class ServerException(Exception):
     pass
 

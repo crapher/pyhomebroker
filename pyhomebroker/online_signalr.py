@@ -31,13 +31,13 @@ from signalr import Connection
 import urllib.parse
 
 class OnlineSignalR:
-    
-    def __init__(self, auth, on_open=None, on_personal_portfolio=None, 
-        on_securities=None, on_options=None, on_repos=None, on_order_book=None, 
+
+    def __init__(self, auth, on_open=None, on_personal_portfolio=None,
+        on_securities=None, on_options=None, on_repos=None, on_order_book=None,
         on_error=None, on_close=None, proxy_url=None):
         """
         Class constructor.
-        
+
         Parameters
         ----------
         auth : home_broker_session
@@ -70,11 +70,11 @@ class OnlineSignalR:
             This function has no argument.
         proxy_url : str, optional
             The proxy URL with one of the following formats:
-                - scheme://user:pass@hostname:port 
+                - scheme://user:pass@hostname:port
                 - scheme://user:pass@ip:port
-                - scheme://hostname:port 
+                - scheme://hostname:port
                 - scheme://ip:port
-            
+
             Ex. https://john:doe@10.10.1.10:3128
         """
 
@@ -88,10 +88,10 @@ class OnlineSignalR:
         self._on_order_book = on_order_book
         self._on_error = on_error
         self._on_close = on_close
-        
+
         self._connection = None
         self._hub = None
-        
+
         self.is_connected = False
 
 ########################
@@ -100,29 +100,29 @@ class OnlineSignalR:
     def connect(self):
         """
         Connects to the signalR server.
-        
+
         Raises
         ------
         pyhomebroker.exceptions.SessionException
             If the user is not logged in.
         """
-        
+
         if not self._auth.is_user_logged_in:
             raise SessionException('User is not logged in')
 
         url = '{}/signalr/hubs'.format(self._auth.broker['page'])
-        
+
         with rq.Session() as session:
             rq.utils.add_dict_to_cookiejar(session.cookies, self._auth.cookies)
 
             if self._proxies:
                 session.proxies.update(self._proxies)
-                
+
             session.headers = {'User-Agent':__user_agent__}
-            
+
             self._connection = Connection(url, session)
             self._hub = self._connection.register_hub('stockpriceshub')
-            
+
             self._hub.client.on('broadcast', self.__internal_securities_options_repos)
 
             self._hub.client.on('sendStartStockFavoritos', self.__internal_personal_portfolio)
@@ -130,41 +130,41 @@ class OnlineSignalR:
 
             self._hub.client.on('sendStartStockPuntas', self.__internal_order_book)
             self._hub.client.on('sendStockPuntas', self.__internal_order_book)
-            
+
             if self._on_error:
                 self._connection.error += self._on_error
-                
+
             self._connection.exception += self.__on_internal_exception
             self._connection.start()
 
             self.is_connected = self._connection.is_open
-            
+
             if self.is_connected and self._on_open:
                 self._on_open()
 
     def disconnect(self):
         """
         Disconnects from the signalR server.
-        
+
         Raises
         ------
         pyhomebroker.exceptions.SessionException
             If the user is not logged in.
             If the connection or hub is not assigned.
         """
-        
+
         if not self._auth.is_user_logged_in:
             raise SessionException('User is not logged in')
-        
+
         if not self._connection or not self._hub:
             raise SessionException('Connection or hub is not assigned')
-        
+
         if self._connection.is_open:
             self._connection.close()
-                
+
         self._connection = None
         self._hub = None
-        
+
         self.is_connected = False
 
         if self._on_close:
@@ -173,7 +173,7 @@ class OnlineSignalR:
     def join_group(self, group_name):
         """
         Subscribe to a group to start receiving event notifications.
-        
+
         Raises
         ------
         pyhomebroker.exceptions.SessionException
@@ -181,22 +181,22 @@ class OnlineSignalR:
             If the connection or hub is not assigned.
             If the connection is not open.
         """
-        
+
         if not self._auth.is_user_logged_in:
             raise SessionException('User is not logged in')
-            
+
         if not self._connection or not self._hub:
             raise SessionException('Connection or hub is not assigned')
-            
+
         if not self._connection.is_open:
             raise SessionException('Connection is not open')
-        
+
         self._hub.server.invoke('JoinGroup', group_name)
-        
+
     def quit_group(self, group_name):
         """
         Unsubscribe from a group to stop receiving event notifications.
-        
+
         Raises
         ------
         pyhomebroker.exceptions.SessionException
@@ -204,52 +204,52 @@ class OnlineSignalR:
             If the connection or hub is not assigned.
             If the connection is not open.
         """
-        
+
         if not self._auth.is_user_logged_in:
             raise SessionException('User is not logged in')
-            
+
         if not self._connection or not self._hub:
             raise SessionException('Connection or hub is not assigned')
-            
+
         if not self._connection.is_open:
             raise SessionException('Connection is not open')
-        
+
         self._hub.server.invoke('QuitGroup', group_name)
-        
+
 #########################
 #### PRIVATE METHODS ####
-#########################       
+#########################
     def __internal_personal_portfolio(self, data):
-        
+
         try: #  Handle any exception processing the information or triggered by the user code
             if self._on_personal_portfolio:
                 if data and not isinstance(data, list):
                     data = [data]
                 df = pd.DataFrame(data if data else pd.DataFrame())
-            
-                self._on_personal_portfolio(helper.process_personal_portfolio(df))            
+
+                self._on_personal_portfolio(helper.process_personal_portfolio(df))
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
                     self._on_error(ex, False)
                 except:
                     pass
-                 
+
     def __internal_securities_options_repos(self, data):
-        
+
         try: # Handle any exception processing the information or triggered by the user code
-            df = pd.DataFrame(data) if data else pd.DataFrame()      
-            
+            df = pd.DataFrame(data) if data else pd.DataFrame()
+
             df_repo = df[df.Group == 'cauciones-']
             df_options = df[df.Group == 'opciones-']
             df_securities = df[(df.Group != 'cauciones-') & (df.Group != 'opciones-')]
-            
+
             if len(df_repo) and self._on_repos:
                 self._on_repos(helper.process_repos(df_repo))
 
             if len(df_options) and self._on_options:
                 self._on_options(helper.process_options(df_options))
-            
+
             if len(df_securities) and self._on_securities:
                 self._on_securities(helper.process_securities(df_securities))
 
@@ -259,32 +259,32 @@ class OnlineSignalR:
                     self._on_error(ex, False)
                 except:
                     pass
-             
+
     def __internal_order_book(self, data):
 
         try: # Handle any exception processing the information or triggered by the user code
             if self._on_order_book and data:
                 symbol = data['Symbol']
                 settlement = data['Term']
-                
+
                 if data['StockDepthBox'] and data['StockDepthBox']['PriceDepthBox']:
                     df_buy = pd.DataFrame(data['StockDepthBox']['PriceDepthBox']['BuySide'])
                     df_sell = pd.DataFrame(data['StockDepthBox']['PriceDepthBox']['SellSide'])
-                else:        
+                else:
                     df_buy = pd.DataFrame()
                     df_sell = pd.DataFrame()
-                    
+
                 self._on_order_book(helper.process_order_book(symbol, settlement, df_buy, df_sell))
-            
+
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
                     self._on_error(ex, False)
                 except:
                     pass
-                
+
     def __on_internal_exception(self, exception_type, value, traceback):
-        
+
         if self._on_error:
             try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
                 self._on_error(exception_type(value), True)

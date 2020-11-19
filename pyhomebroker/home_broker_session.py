@@ -29,25 +29,25 @@ import pandas as pd
 import urllib.parse
 
 class HomeBrokerSession:
-    
+
     def __init__(self, broker, proxy_url=None):
         """
-        Class constructor 
-        
+        Class constructor
+
         Parameters
         ----------
         broker : dictionary
             A broker dictionary with all the broker information. (Check brokers.py)
         proxy_url : str, optional
             The proxy URL with one of the following formats:
-                - scheme://user:pass@hostname:port 
+                - scheme://user:pass@hostname:port
                 - scheme://user:pass@ip:port
-                - scheme://hostname:port 
+                - scheme://hostname:port
                 - scheme://ip:port
-            
+
             Ex. https://john:doe@10.10.1.10:3128
         """
-        
+
         self._proxies = {'http': proxy_url, 'https': proxy_url} if proxy_url else None
         self.broker = broker
 
@@ -62,7 +62,7 @@ class HomeBrokerSession:
     def login(self, dni, user, password, raise_exception=False):
         """
         This method authenticates the user in the home broker platform.
-        
+
         Parameters
         ----------
         dni : int
@@ -73,54 +73,54 @@ class HomeBrokerSession:
             The password used in the platform.
         raise_exception : bool
             If the method should raise an exception when an error happens.
-        
+
         Raises
         ------
-        pyhomebroker.exceptions.SessionException 
+        pyhomebroker.exceptions.SessionException
             The user cannot be authenticated.
         requests.exceptions.HTTPError
             There is a problem related to the HTTP request.
-        
+
         Returns
         -------
         True is the user authenticated successfully, otherwise False (if raise_exception is False).
         """
-        
-        try:            
+
+        try:
             headers = {
                 'User-Agent': __user_agent__,
                 'Accept-Encoding': 'gzip, deflate',
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
-            
+
             url = '{}/Login/Ingresar'.format(self.broker['page'])
-            
+
             payload = {
-                'IpAddress': self.__get_ipaddress(), 
-                'Dni': dni, 
-                'Usuario': user, 
-                'Password': password}      
+                'IpAddress': self.__get_ipaddress(),
+                'Dni': dni,
+                'Usuario': user,
+                'Password': password}
             payload = urllib.parse.urlencode(payload)
-                        
+
             with rq.Session() as sess:
                 response = sess.post(url, data=payload, headers=headers, proxies=self._proxies)
                 response.raise_for_status()
-                
+
                 doc = pq(response.text)
                 if not doc('#usuarioLogueado'):
-                    
+
                     errormsg = doc('.callout-danger')
                     if errormsg:
                         raise SessionException(errormsg.text())
-                       
+
                     raise SessionException('Session cannot be created.  Check the entered information and try again.')
-                    
+
                 self.is_user_logged_in = True
                 self.cookies = rq.utils.dict_from_cookiejar(sess.cookies)
         except Exception as ex:
             self.is_user_logged_in = False
             self.cookies = {}
-            
+
             if raise_exception:
                 raise
 
@@ -130,15 +130,15 @@ class HomeBrokerSession:
         """
         This method cleans the login data in the library.
         """
-        
+
         self.is_user_logged_in = False
         self.cookies = {}
-   
+
 #########################
 #### PRIVATE METHODS ####
 #########################
     def __get_ipaddress(self):
-        
+
         if not self.__ipaddress:
            data = rq.get('https://api.ipify.org/?format=json&callback=get_ip', proxies=self._proxies)
            self.__ipaddress = (data.json()['ip'])

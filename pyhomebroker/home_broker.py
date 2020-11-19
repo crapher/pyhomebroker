@@ -26,13 +26,13 @@ from .history import History
 from .exceptions import BrokerNotSupportedException
 
 class HomeBroker:
-    
-    def __init__(self, broker_id, on_open=None, on_personal_portfolio=None, 
-        on_securities=None, on_options=None, on_repos=None, on_order_book=None, 
+
+    def __init__(self, broker_id, on_open=None, on_personal_portfolio=None,
+        on_securities=None, on_options=None, on_repos=None, on_order_book=None,
         on_error=None, on_close=None, proxy_url=None):
         """
-        Class constructor 
-        
+        Class constructor
+
         Parameters
         ----------
         broker_id : int
@@ -75,41 +75,41 @@ class HomeBroker:
             This function has one argument. The argument is the callable object.
         proxy_url : str, optional
             The proxy URL with one of the following formats:
-                - scheme://user:pass@hostname:port 
+                - scheme://user:pass@hostname:port
                 - scheme://user:pass@ip:port
-                - scheme://hostname:port 
+                - scheme://hostname:port
                 - scheme://ip:port
-            
+
             Ex. https://john:doe@10.10.1.10:3128
-        
+
         Raises
         ------
         pyhomebroker.exceptions.BrokerNotSupportedException
             The broker_id is not in the list of supported brokers
         """
-        
+
         self._broker = self.__get_broker_data(broker_id)
-        
+
         self.auth = HomeBrokerSession(
-            broker=self._broker, 
+            broker=self._broker,
             proxy_url=proxy_url)
-            
+
         self.online = Online(
-            auth=self.auth, 
-            on_open=on_open, 
-            on_personal_portfolio=on_personal_portfolio, 
-            on_securities=on_securities, 
-            on_options=on_options, 
-            on_repos=on_repos, 
-            on_order_book=on_order_book, 
-            on_error=on_error, 
-            on_close=on_close, 
+            auth=self.auth,
+            on_open=on_open,
+            on_personal_portfolio=on_personal_portfolio,
+            on_securities=on_securities,
+            on_options=on_options,
+            on_repos=on_repos,
+            on_order_book=on_order_book,
+            on_error=on_error,
+            on_close=on_close,
             proxy_url=proxy_url)
-            
+
         self.history = History(
-            auth=self.auth, 
+            auth=self.auth,
             proxy_url=proxy_url)
-        
+
 #########################
 #### PRIVATE METHODS ####
 #########################
