@@ -49,6 +49,28 @@ __group_map = {
     'letes': 'short_term_government_bonds',
     'obligaciones': 'corporate_bonds'}
 
+__personal_portfolio_index = ['symbol', 'settlement']
+__personal_portfolio_columns = ['symbol', 'settlement', 'bid_size', 'bid', 'ask', 'ask_size', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'expiration', 'strike', 'kind', 'underlying_asset']
+__empty_personal_portfolio = pd.DataFrame(columns=__personal_portfolio_columns).set_index(__personal_portfolio_index)
+
+__securities_index = ['symbol', 'settlement']
+__securities_columns = ['symbol', 'settlement', 'bid_size', 'bid', 'ask', 'ask_size', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'group']
+__empty_securities = pd.DataFrame(columns=__securities_columns).set_index(__securities_index)
+
+__options_index = ['symbol']
+__options_columns = ['symbol', 'bid_size', 'bid', 'ask', 'ask_size', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'expiration', 'strike', 'kind', 'underlying_asset']
+__empty_options = pd.DataFrame(columns=__options_columns).set_index(__options_index)
+
+__repos_index = ['symbol', 'settlement']
+__repos_columns = ['symbol', 'days', 'settlement', 'bid_amount', 'bid_rate', 'ask_rate', 'ask_amount', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime']
+__empty_repos = pd.DataFrame(columns=__repos_columns).set_index(__repos_index)
+
+__order_book_index = ['symbol', 'settlement', 'position']
+__order_book_buy_columns = ['position', 'bid_size', 'bid', 'bid_offers_count']
+__order_book_sell_columns = ['position', 'ask_size', 'ask', 'ask_offers_count']
+__order_book_columns = list(set(__order_book_index) | set(__order_book_buy_columns) | set(__order_book_sell_columns))
+__empty_order_book = pd.DataFrame(columns=__order_book_columns).set_index(__order_book_index)
+
 ############################
 ## PROCESS JSON DOCUMENTS ##
 ############################
@@ -62,54 +84,36 @@ def convert_to_numeric_columns(df, columns):
 
 def process_personal_portfolio(data):
 
-    result_index = ['symbol', 'settlement']
+    if not data:
+        return __empty_personal_portfolio
+    
+    df = pd.DataFrame(data)
+    if df.empty:
+        return __empty_personal_portfolio
+        
     filter_columns = ['Symbol', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'MaturityDate', 'StrikePrice', 'PutOrCall', 'Issuer']
-    result_columns = ['symbol', 'settlement', 'bid_size', 'bid', 'ask', 'ask_size', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'expiration', 'strike', 'kind', 'underlying_asset']
     numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bid_size', 'bid', 'ask_size', 'ask', 'previous_close', 'strike']
     numeric_options_columns = ['MaturityDate', 'StrikePrice']
     alpha_option_columns = ['PutOrCall', 'Issuer']
-
-    df = pd.DataFrame(data if data else pd.DataFrame())
-
-    if not df.empty:
-        df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
-        df.loc[df.StrikePrice == 0, alpha_option_columns] = ''
-        df.loc[df.StrikePrice == 0, numeric_options_columns] = np.nan
-        df.MaturityDate = pd.to_datetime(df.MaturityDate, format='%Y%m%d', errors='coerce')
-        df.PutOrCall = df.PutOrCall.apply(lambda x: __callput[x] if x in __callput else __callput[0])
-        df.Term = df.Term.apply(lambda x: __settlements_int[x] if x in __settlements_int else '')
-
-        df = df[filter_columns].copy()
-        df.columns = result_columns
-
-        df = convert_to_numeric_columns(df, numeric_columns)
-    else:
-        df = pd.DataFrame(columns=result_columns)
-
-    df = df.set_index(result_index)
-    return df
-
-def process_personal_portfolio_order_book(data):
-
-    if not data:
-        return pd.DataFrame()
-
-    df = pd.DataFrame()
-
-    for item in data:
-        df_buy = pd.DataFrame(item['StockDepthBox']['PriceDepthBox']['BuySide'])
-        df_sell = pd.DataFrame(item['StockDepthBox']['PriceDepthBox']['SellSide'])
-
-        order_book = process_order_book(item['Symbol'], item['Term'], df_buy, df_sell)
-        df = order_book if df.empty else pd.concat([df, order_book])
-
+    
+    df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
+    df.loc[df.StrikePrice == 0, alpha_option_columns] = ''
+    df.loc[df.StrikePrice == 0, numeric_options_columns] = np.nan
+    df.MaturityDate = pd.to_datetime(df.MaturityDate, format='%Y%m%d', errors='coerce')
+    df.PutOrCall = df.PutOrCall.apply(lambda x: __callput[x] if x in __callput else __callput[0])
+    df.Term = df.Term.apply(lambda x: __settlements_int[x] if x in __settlements_int else '')
+    
+    df = df[filter_columns].copy()
+    df.columns = __personal_portfolio_columns
+    
+    df = convert_to_numeric_columns(df, numeric_columns)
+    df = df.set_index(__personal_portfolio_index)
+    
     return df
 
 def process_securities(df):
 
-    result_index = ['symbol', 'settlement']
     filter_columns = ['Symbol', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'Panel']
-    result_columns = ['symbol', 'settlement', 'bid_size', 'bid', 'ask', 'ask_size', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'group']
     numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bid_size', 'bid', 'ask_size', 'ask', 'previous_close']
 
     if not df.empty:
@@ -118,20 +122,19 @@ def process_securities(df):
         df.Panel = df.Panel.apply(lambda x: __group_map[x] if x in __group_map else '')
 
         df = df[filter_columns].copy()
-        df.columns = result_columns
+        df.columns = __securities_columns
 
         df = convert_to_numeric_columns(df, numeric_columns)
+        
+        df = df.set_index(__securities_index)
     else:
-        df = pd.DataFrame(columns=result_columns)
+        df = __empty_securities
 
-    df = df.set_index(result_index)
     return df
 
 def process_options(df):
 
-    result_index = ['symbol']
     filter_columns = ['Symbol', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'MaturityDate', 'StrikePrice', 'PutOrCall', 'Issuer']
-    result_columns = ['symbol', 'bid_size', 'bid', 'ask', 'ask_size', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'expiration', 'strike', 'kind', 'underlying_asset']
     numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bid_size', 'bid', 'ask_size', 'ask', 'previous_close', 'strike']
 
     if not df.empty:
@@ -140,60 +143,79 @@ def process_options(df):
         df.PutOrCall = df.PutOrCall.apply(lambda x: __callput[x] if x in __callput else __callput[0])
 
         df = df[filter_columns].copy()
-        df.columns = result_columns
+        df.columns = __options_columns
         df = convert_to_numeric_columns(df, numeric_columns)
-    else:
-        df = pd.DataFrame(columns=result_columns)
+        df = df[df.strike > 0].copy() # Remove non options rows
 
-    df = df.set_index(result_index)
-    return df[df.strike > 0].copy() # Remove non options rows
+        df = df.set_index(__options_index)
+    else:
+        df = __empty_options
+
+    return df
 
 def process_repos(df):
 
-    result_index = ['symbol', 'settlement']
     filter_columns = ['Symbol', 'CantDias', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate']
-    result_columns = ['symbol', 'days', 'settlement', 'bid_amount', 'bid_rate', 'ask_rate', 'ask_amount', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime']
     numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bid_amount', 'bid_rate', 'ask_rate', 'ask_amount', 'previous_close']
 
     if not df.empty:
         df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
 
         df = df[filter_columns].copy()
-        df.columns = result_columns
+        df.columns = __repos_columns
 
         df = convert_to_numeric_columns(df, numeric_columns)
-    else:
-        df = pd.DataFrame(columns=result_columns)
 
-    df = df.set_index(result_index)
+        df = df.set_index(__repos_index)
+    else:
+        df = __empty_repos
+
     return df
 
 def process_order_book(name, settlement, df_buy, df_sell):
 
-    result_index = ['symbol', 'settlement', 'position']
     filter_buy_columns = ['Pos', 'BuyQuantity', 'BuyPrice', 'NumberOfOrders']
-    result_buy_columns = ['position', 'bid_size', 'bid', 'bid_offers_count']
     filter_sell_columns = ['Pos', 'SellQuantity', 'SellPrice', 'NumberOfOrders']
-    result_sell_columns = ['position', 'ask_size', 'ask', 'ask_offers_count']
 
-    df = pd.DataFrame(columns=result_index)
+    df = pd.DataFrame(columns=__order_book_index)
     df.position = range(1, 6)
     df.symbol = name
     df.settlement = __settlements_int[settlement] if settlement in __settlements_int else settlement
 
     df_buy = df_buy[filter_buy_columns] if not df_buy.empty else pd.DataFrame(columns=filter_buy_columns)
-    df_buy.columns = result_buy_columns
+    df_buy.columns = __order_book_buy_columns
     df = df.merge(df_buy, on=['position'], how='left')
 
     df_sell = df_sell[filter_sell_columns] if not df_sell.empty else pd.DataFrame(columns=filter_sell_columns)
-    df_sell.columns = result_sell_columns
+    df_sell.columns = __order_book_sell_columns
     df = df.merge(df_sell, on=['position'], how='left')
 
-    df = convert_to_numeric_columns(df, result_buy_columns + result_sell_columns)
+    df = convert_to_numeric_columns(df, list(set(__order_book_buy_columns) | set(__order_book_sell_columns)))
 
-    df = df.set_index(result_index)
+    df = df.set_index(__order_book_index)
     return df
 
+def process_order_books(data):
+
+    if not data:
+        return __empty_order_book
+
+    df = __empty_order_book
+
+    for item in data:
+        
+        if item['StockDepthBox'] and item['StockDepthBox']['PriceDepthBox']:
+            df_buy = pd.DataFrame(item['StockDepthBox']['PriceDepthBox']['BuySide'])
+            df_sell = pd.DataFrame(item['StockDepthBox']['PriceDepthBox']['SellSide'])
+        else:
+            df_buy = pd.DataFrame()
+            df_sell = pd.DataFrame()
+
+        order_book = process_order_book(item['Symbol'], item['Term'], df_buy, df_sell)
+        df = order_book if df.empty else pd.concat([df, order_book])
+
+    return df
+    
 ##################################
 ## BOARD & SETTLEMENT FUNCTIONS ##
 ##################################

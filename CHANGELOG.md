@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.3
+---
+- Decouple data acquisition from data processing to avoid a bottleneck that caused delays in the quotes notification
+- Minor performance improvements when empty data was received
+
 0.2
 ---
 - Add Historical Intraday data

@@ -23,14 +23,27 @@ from . import __user_agent__
 from . import online_helper as helper
 from .exceptions import DataException, SessionException, ServerException
 
+from threading import Thread, Event, Lock
 import requests as rq
 import pandas as pd
+import logging
+import time
 
 from signalr import Connection
 
 import urllib.parse
 
 class OnlineSignalR:
+
+    __worker_thread = None
+    __worker_thread_event = None
+    
+    __personal_portfolio_queue_lock = Lock()
+    __personal_portfolio_queue = []
+    __securities_options_repos_queue_lock = Lock()
+    __securities_options_repos_queue = []
+    __order_book_queue_lock = Lock()
+    __order_book_queue = []
 
     def __init__(self, auth, on_open=None, on_personal_portfolio=None,
         on_securities=None, on_options=None, on_repos=None, on_order_book=None,
@@ -141,6 +154,10 @@ class OnlineSignalR:
 
             if self.is_connected and self._on_open:
                 self._on_open()
+                
+                self.__worker_thread_event = Event()
+                self.__worker_thread = Thread(target=self.__worker_thread_run)
+                self.__worker_thread.start()
 
     def disconnect(self):
         """
@@ -170,6 +187,12 @@ class OnlineSignalR:
         if self._on_close:
             self._on_close()
 
+        if self.__worker_thread_event and not self.__worker_thread_event.is_set():
+            self.__worker_thread_event.set()
+            self.__worker_thread.join()
+            self.__worker_thread_event = None
+            self.__worker_thread = None
+     
     def join_group(self, group_name):
         """
         Subscribe to a group to start receiving event notifications.
@@ -219,18 +242,54 @@ class OnlineSignalR:
 #########################
 #### PRIVATE METHODS ####
 #########################
-    def __internal_personal_portfolio(self, data):
+    def __worker_thread_run(self):
 
-        try: #  Handle any exception processing the information or triggered by the user code
-            if data and not isinstance(data, list):
-                data = [data]
-
-            df_portfolio = helper.process_personal_portfolio(data)
-            df_order_book = helper.process_personal_portfolio_order_book(data)
+        while not self.__worker_thread_event.wait(0.1):
             
-            if self._on_personal_portfolio and data:
-                self._on_personal_portfolio(df_portfolio, df_order_book)
+            with self.__personal_portfolio_queue_lock:
+                data = self.__personal_portfolio_queue
+                self.__personal_portfolio_queue = []
+            self.__process_personal_portfolio(data)
+            
+            with self.__securities_options_repos_queue_lock:
+                data = self.__securities_options_repos_queue
+                self.__securities_options_repos_queue = []
+            self.__process_securities_options_repos(data)
 
+            with self.__order_book_queue_lock:
+                data = self.__order_book_queue
+                self.__order_book_queue = []
+            self.__process_order_books(data)
+
+    def __process_personal_portfolio(self, data):
+        
+        try: #  Handle any exception processing the information or triggered by the user code
+            if not self._on_personal_portfolio or len(data) == 0:
+                return
+
+            ts = time.time()
+            
+            # Remove duplicates from Json Document
+            data_filter = {}
+            for item in data:
+                data_filter[item['Symbol'] + '-' + item['Term']] = item    
+            data = list(data_filter.values())
+            
+            df_portfolio = helper.process_personal_portfolio(data)
+            ts_pp_process = time.time()
+
+            df_order_book = helper.process_order_books(data)
+            ts_ob_process = time.time()
+            
+            self._on_personal_portfolio(df_portfolio, df_order_book)
+            ts_event = time.time()
+
+            logging.debug("[HOMEBROKER: SIGNALR] Performance [__process_personal_portfolio (P: {} - OB: {})]: (PP Proc: {:.3f}s - OB Proc: {:.3f}s - Notif: {:.3f}s)".format(
+                len(df_portfolio.index),
+                len(df_order_book.index),
+                ts_pp_process - ts,
+                ts_ob_process - ts_pp_process,
+                ts_event - ts_ob_process))
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
@@ -238,54 +297,130 @@ class OnlineSignalR:
                 except:
                     pass
 
-    def __internal_securities_options_repos(self, data):
-
+    def __process_securities_options_repos(self, data):
+        
         try: # Handle any exception processing the information or triggered by the user code
+            if len(data) == 0:
+                return
+            
+            # Remove duplicates from Json Document
+            data_filter = {}
+            for item in data:
+                data_filter[item['Symbol'] + '-' + item['Term']] = item    
+            data = list(data_filter.values())
+        
             df = pd.DataFrame(data) if data else pd.DataFrame()
 
-            df_repo = df[df.Group == 'cauciones-']
-            df_options = df[df.Group == 'opciones-']
-            df_securities = df[(df.Group != 'cauciones-') & (df.Group != 'opciones-')]
+            df_repo = df[df.Group == 'cauciones-'].copy()
+            df_options = df[df.Group == 'opciones-'].copy()
+            df_securities = df[(df.Group != 'cauciones-') & (df.Group != 'opciones-')].copy()
 
             if len(df_repo) and self._on_repos:
-                self._on_repos(helper.process_repos(df_repo))
+                ts = time.time()
+                
+                repos = helper.process_repos(df_repo)
+                ts_process = time.time()
+                
+                self._on_repos(repos)
+                ts_event = time.time()
+                
+                logging.debug("[HOMEBROKER: SIGNALR] Performance [__process_securities_options_repos (R: {})]: (Proc: {:.3f}s - Notif: {:.3f}s)".format(
+                    len(repos.index),
+                    ts_process - ts,
+                    ts_event - ts_process))
 
             if len(df_options) and self._on_options:
-                self._on_options(helper.process_options(df_options))
+                ts = time.time()
+                
+                options = helper.process_options(df_options)
+                ts_process = time.time()
 
+                self._on_options(options)
+                ts_event = time.time()
+                
+                logging.debug("[HOMEBROKER: SIGNALR] Performance [__process_securities_options_repos (O: {})]: (Proc: {:.3f}s - Notif: {:.3f}s)".format(
+                    len(options.index),
+                    ts_process - ts,
+                    ts_event - ts_process))
+                    
             if len(df_securities) and self._on_securities:
-                self._on_securities(helper.process_securities(df_securities))
+                ts = time.time()
+                
+                securities = helper.process_securities(df_securities)
+                ts_process = time.time()
 
+                self._on_securities(securities)
+                ts_event = time.time()
+                
+                logging.debug("[HOMEBROKER: SIGNALR] Performance [__process_securities_options_repos (S: {})]: (Proc: {:.3f}s - Notif: {:.3f}s)".format(
+                    len(securities.index),
+                    ts_process - ts,
+                    ts_event - ts_process))
         except Exception as ex:
             if self._on_error:
                 try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
                     self._on_error(ex, False)
                 except:
                     pass
+
+    def __process_order_books(self, data):
+        
+        try: # Handle any exception processing the information or triggered by the user code
+            if not self._on_order_book or len(data) == 0:
+                return
+                
+            ts = time.time()
+            
+            # Remove duplicates from Json Document
+            data_filter = {}
+            for item in data:
+                data_filter[item['Symbol'] + '-' + item['Term']] = item    
+            data = list(data_filter.values())
+            
+            order_books = helper.process_order_books(data)
+            ts_process = time.time()
+
+            self._on_order_book(order_books)
+            ts_event = time.time()
+
+            logging.debug("[HOMEBROKER: SIGNALR] Performance [__process_order_books ({})]: (Proc: {:.3f}s - Notif: {:.3f}s)".format(
+                len(data),
+                ts_process - ts,
+                ts_event - ts_process))
+        except Exception as ex:
+            if self._on_error:
+                try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
+                    self._on_error(ex, False)
+                except:
+                    pass
+                
+#############################################
+#### PRIVATE METHODS - SIGNALR CALLBACKS ####
+#############################################
+    def __internal_personal_portfolio(self, data):
+
+        if data and not isinstance(data, list):
+            data = [data]
+            
+        with self.__personal_portfolio_queue_lock:
+            self.__personal_portfolio_queue.extend(data)
+     
+    def __internal_securities_options_repos(self, data):
+
+        if data and not isinstance(data, list):
+            data = [data]
+            
+        with self.__securities_options_repos_queue_lock:
+            self.__securities_options_repos_queue.extend(data)
 
     def __internal_order_book(self, data):
 
-        try: # Handle any exception processing the information or triggered by the user code
-            if self._on_order_book and data:
-                symbol = data['Symbol']
-                settlement = data['Term']
-
-                if data['StockDepthBox'] and data['StockDepthBox']['PriceDepthBox']:
-                    df_buy = pd.DataFrame(data['StockDepthBox']['PriceDepthBox']['BuySide'])
-                    df_sell = pd.DataFrame(data['StockDepthBox']['PriceDepthBox']['SellSide'])
-                else:
-                    df_buy = pd.DataFrame()
-                    df_sell = pd.DataFrame()
-
-                self._on_order_book(helper.process_order_book(symbol, settlement, df_buy, df_sell))
-
-        except Exception as ex:
-            if self._on_error:
-                try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
-                    self._on_error(ex, False)
-                except:
-                    pass
-
+        if data and not isinstance(data, list):
+            data = [data]
+            
+        with self.__order_book_queue_lock:
+            self.__order_book_queue.extend(data)
+ 
     def __on_internal_exception(self, exception_type, value, traceback):
 
         if self._on_error:

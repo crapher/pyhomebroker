@@ -76,7 +76,7 @@ class OnlineScrapping:
         data = data['Result'] if data and data['Result'] else None
         
         df_portfolio = helper.process_personal_portfolio(data)
-        df_order_book = helper.process_personal_portfolio_order_book(data)
+        df_order_book = helper.process_order_books(data)
 
         return [df_portfolio, df_order_book]
 
