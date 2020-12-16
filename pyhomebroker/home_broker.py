@@ -19,11 +19,11 @@
 # limitations under the License.
 #
 
-from ._brokers import brokers
+from .common import brokers, BrokerNotSupportedException
 from .home_broker_session import HomeBrokerSession
 from .online import Online
 from .history import History
-from .exceptions import BrokerNotSupportedException
+from .orders import Orders
 
 class HomeBroker:
 
@@ -107,6 +107,10 @@ class HomeBroker:
             proxy_url=proxy_url)
 
         self.history = History(
+            auth=self.auth,
+            proxy_url=proxy_url)
+            
+        self.orders = Orders(
             auth=self.auth,
             proxy_url=proxy_url)
 

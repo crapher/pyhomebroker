@@ -19,8 +19,4 @@
 # limitations under the License.
 #
 
-__version__ = '0.4'
-__author__ = 'Diego Degese'
-
-from .home_broker import HomeBroker
-
+from .history import History

@@ -19,8 +19,7 @@
 # limitations under the License.
 #
 
-__version__ = '0.4'
-__author__ = 'Diego Degese'
-
-from .home_broker import HomeBroker
-
+from .online_core import OnlineCore
+from .online_scrapping import OnlineScrapping
+from .online_signalr import OnlineSignalR
+from .online import Online

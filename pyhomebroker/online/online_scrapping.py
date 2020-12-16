@@ -19,16 +19,14 @@
 # limitations under the License.
 #
 
-from . import __user_agent__
-from . import online_helper as helper
-
-from .exceptions import DataException, SessionException, ServerException
+from ..common import user_agent, DataException, SessionException, ServerException
+from .online_core import OnlineCore
 
 import requests as rq
 import pandas as pd
 import numpy as np
 
-class OnlineScrapping:
+class OnlineScrapping(OnlineCore):
 
     def __init__(self, auth, proxy_url=None):
         """
@@ -75,8 +73,8 @@ class OnlineScrapping:
         data = self.__get_personal_portfolio()
         data = data['Result'] if data and data['Result'] else None
         
-        df_portfolio = helper.process_personal_portfolio(data)
-        df_order_book = helper.process_order_books(data)
+        df_portfolio = self.process_personal_portfolio(data)
+        df_order_book = self.process_order_books(data)
 
         return [df_portfolio, df_order_book]
 
@@ -112,7 +110,7 @@ class OnlineScrapping:
         data = self.__get_predefined_portfolio(board, settlement)
         df = pd.DataFrame(data['Result']['Stocks']) if data['Result'] and data['Result']['Stocks'] else pd.DataFrame()
 
-        return helper.process_securities(df)
+        return self.process_securities(df)
 
     def get_options(self):
         """
@@ -135,7 +133,7 @@ class OnlineScrapping:
         data = self.__get_predefined_portfolio('opciones')
         df = pd.DataFrame(data['Result']['Stocks']) if data['Result'] and data['Result']['Stocks'] else pd.DataFrame()
 
-        return helper.process_options(df)
+        return self.process_options(df)
 
     def get_repos(self):
         """
@@ -158,7 +156,7 @@ class OnlineScrapping:
         data = self.__get_predefined_portfolio('cauciones')
         df = pd.DataFrame(data['Result']['Stocks']) if data['Result'] and data['Result']['Stocks'] else pd.DataFrame()
 
-        return helper.process_repos(df)
+        return self.process_repos(df)
 
     def get_order_book(self, symbol, settlement=None):
         """
@@ -200,7 +198,7 @@ class OnlineScrapping:
             df_buy = pd.DataFrame()
             df_sell = pd.DataFrame()
 
-        return helper.process_order_book(symbol, settlement, df_buy, df_sell)
+        return self.process_order_book(symbol, settlement, df_buy, df_sell)
 
 #########################
 #### PRIVATE METHODS ####
@@ -211,7 +209,7 @@ class OnlineScrapping:
             raise SessionException('User is not logged in')
 
         headers = {
-            'User-Agent': __user_agent__,
+            'User-Agent': user_agent,
             'Accept-Encoding': 'gzip, deflate',
             'Content-Type': 'application/json; charset=UTF-8'
         }
@@ -234,7 +232,7 @@ class OnlineScrapping:
             raise SessionException('User is not logged in')
 
         headers = {
-            'User-Agent': __user_agent__,
+            'User-Agent': user_agent,
             'Accept-Encoding': 'gzip, deflate',
             'Content-Type': 'application/json; charset=UTF-8'
         }
@@ -262,7 +260,7 @@ class OnlineScrapping:
             raise SessionException('User is not logged in')
 
         headers = {
-            'User-Agent': __user_agent__,
+            'User-Agent': user_agent,
             'Accept-Encoding': 'gzip, deflate',
             'Content-Type': 'application/json; charset=UTF-8'
         }

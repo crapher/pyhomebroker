@@ -19,13 +19,17 @@
 # limitations under the License.
 #
 
+from ..common import DataException, SessionException, ServerException
 from .online_scrapping import OnlineScrapping
 from .online_signalr import OnlineSignalR
-from .exceptions import DataException, SessionException, ServerException
-from . import online_helper as helper
 
 class Online:
 
+    __settlements_str = {
+        'spot': '1',
+        '24hs': '2',
+        '48hs': '3'}
+        
     def __init__(self, auth, on_open=None, on_personal_portfolio=None,
         on_securities=None, on_options=None, on_repos=None, on_order_book=None,
         on_error=None, on_close=None, proxy_url=None):
@@ -180,7 +184,7 @@ class Online:
             self.__internal_on_error(ex, False)
 
         for _, row in df_portfolio.reset_index().iterrows():
-            settlement = helper.get_settlement_for_request(row['settlement'], row['symbol'])
+            settlement = self.get_settlement_for_request(row['settlement'], row['symbol'])
             group_name = '{}*{}*fv'.format(row['symbol'], settlement)
 
             self._signalr.join_group(group_name)
@@ -242,8 +246,8 @@ class Online:
         if not settlement:
             raise DataException('Settlement is not assigned')
 
-        board = helper.get_board_for_request(board)
-        settlement = helper.get_settlement_for_request(settlement)
+        board = self.get_board_for_request(board)
+        settlement = self.get_settlement_for_request(settlement)
 
         df = self._scrapping.get_securities(board, settlement)
         try:
@@ -287,8 +291,8 @@ class Online:
         if not settlement:
             raise DataException('Settlement is not assigned')
 
-        board = helper.get_board_for_request(board)
-        settlement = helper.get_settlement_for_request(settlement)
+        board = self.get_board_for_request(board)
+        settlement = self.get_settlement_for_request(settlement)
 
         group_name = '{}-{}'.format(board, settlement)
         self._signalr.quit_group(group_name)
@@ -415,7 +419,7 @@ class Online:
             raise DataException('Symbol is not assigned')
 
         symbol = symbol.upper()
-        settlement = helper.get_settlement_for_request(settlement, symbol)
+        settlement = self.get_settlement_for_request(settlement, symbol)
 
         df = self._scrapping.get_order_book(symbol, settlement)
         try:
@@ -451,10 +455,35 @@ class Online:
             raise DataException('Settlement is not assigned')
 
         symbol = symbol.upper()
-        settlement = helper.get_settlement_for_request(settlement, symbol)
+        settlement = self.get_settlement_for_request(settlement, symbol)
 
         group_name = '{}*{}*cj'.format(symbol, settlement)
         self._signalr.quit_group(group_name)
+
+    def get_orders_status(self, account_id):
+        """
+        Returns the orders status.
+
+        Parameters
+        ----------
+        account_id : str
+            The account identification used to retrieve the orders status.
+
+        Raises
+        ------
+        pyhomebroker.exceptions.SessionException
+            If the user is not logged in.
+        pyhomebroker.exceptions.ServerException
+            When the server returns an error in the response.
+        requests.exceptions.HTTPError
+            There is a problem related to the HTTP request.
+
+        Returns
+        -------
+        A dataframe with orders status.
+        """
+
+        return self._scrapping.get_orders_status(account_id)
 
 ###########################
 #### SIGNALR CALLBACKS ####
@@ -501,3 +530,44 @@ class Online:
 
         if self._on_close:
             self._on_close(self)
+
+#########################
+#### PRIVATE METHODS ####
+#########################
+    def get_board_for_request(self, board):
+
+        boards = {
+            'bluechips': 'accionesLideres',
+            'general_board': 'panelGeneral',
+            'cedears': 'cedears',
+            'government_bonds': 'rentaFija',
+            'short_term_government_bonds': 'letes',
+            'corporate_bonds': 'obligaciones'}
+
+        if not board.lower() in boards:
+            raise DataException('Invalid board name.')
+
+        return boards[board.lower()]
+
+    def get_settlement_for_request(self, settlement_str, symbol=None):
+
+        is_option = symbol and len(symbol) == 10
+        if is_option:
+            if settlement_str and settlement_str != '':
+                raise DataException('Invalid settlement for option.  Settlement for options should be None or empty.')
+
+            return settlement_str or ''
+
+        is_repo = symbol and symbol in ['DOLAR', 'PESOS']
+        if is_repo:
+            try:
+                settlement_date = datetime.strptime(settlement_str, '%Y%m%d')
+
+                return settlement_str
+            except ValueError:
+                raise DataException('Invalid settlement for repo.  Settlement for repos should be a string with format %Y%m%d (YYYYMMDD)')
+
+        if not settlement_str or not (settlement_str.lower() in self.__settlements_str):
+            raise DataException('Invalid settlement. Settlement for assets should be spot, 24hs or 48hs.')
+
+        return self.__settlements_str[settlement_str.lower()]

@@ -10,7 +10,7 @@ pyhomebroker is an API to connect any python program to the market to receive qu
 
 ## Quick Start
 
-Pyhomebroker has two modules, the online module and the history module.
+Pyhomebroker has three modules, the online module, the history module, and the orders module.
 
 ### Online Module
 
@@ -147,7 +147,26 @@ Historical intraday data example:
 
 The file **[example_intraday_history.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_intraday_history.py)** shows a complete working out of the box example.
 
+### Orders Module
+
+The orders module is used to get information about the status of the orders operated during the day.
+
+    from pyhomebroker import HomeBroker
+
+    hb = HomeBroker(
+        # Broker ByMA id
+        81)
+
+    # Authenticate with the homebroker platform
+    hb.auth.login(dni='12345678', user='user', password='password', raise_exception=True)
+
+    # Get orders status for account 14565
+    orders = hb.orders.get_orders_status(14565)
+
+    print(orders)
+	
 ## Supported Brokers
+
 | Broker|Byma Id|
 | ------------ | :------------: |
 |Buenos Aires Valores S.A.|12|

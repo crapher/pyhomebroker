@@ -19,8 +19,16 @@
 # limitations under the License.
 #
 
-__version__ = '0.4'
-__author__ = 'Diego Degese'
+from pyhomebroker import HomeBroker
 
-from .home_broker import HomeBroker
+broker = input('Numero de Agente: ')
+dni = input('DNI: ')
+user = input('Usuario: ')
+password = input('Clave: ')
+account_id = input('Comitente: ')
 
+hb = HomeBroker(int(broker))
+hb.auth.login(dni=dni, user=user, password=password, raise_exception=True)
+
+orders = hb.orders.get_orders_status(account_id)
+print(orders)

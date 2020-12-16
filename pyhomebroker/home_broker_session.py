@@ -19,8 +19,7 @@
 # limitations under the License.
 #
 
-from . import __user_agent__
-from .exceptions import SessionException
+from .common import user_agent, SessionException
 
 from pyquery import PyQuery as pq
 
@@ -88,7 +87,7 @@ class HomeBrokerSession:
 
         try:
             headers = {
-                'User-Agent': __user_agent__,
+                'User-Agent': user_agent,
                 'Accept-Encoding': 'gzip, deflate',
                 'Content-Type': 'application/x-www-form-urlencoded'
             }

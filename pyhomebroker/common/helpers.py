@@ -19,8 +19,13 @@
 # limitations under the License.
 #
 
-__version__ = '0.4'
-__author__ = 'Diego Degese'
+import pandas as pd
+import numpy as np
 
-from .home_broker import HomeBroker
+def convert_to_numeric_columns(df, columns):
 
+    for col in columns:
+        df[col] = df[col].apply(lambda x: x.replace('.', '').replace(',','.') if isinstance(x, str) else x)
+        df[col] = pd.to_numeric(df[col].apply(lambda x: np.nan if x == '-' else x))
+
+    return df

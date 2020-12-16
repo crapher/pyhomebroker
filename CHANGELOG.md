@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+0.4
+---
+- Sort code in folders based on functionality
+- Add orders module to get status of orders
+
 0.3
 ---
 - Decouple data acquisition from data processing to avoid a bottleneck that caused delays in the quotes notification
@@ -17,7 +22,7 @@ Change Log
 - Add error handling on the events triggered when the information comes from the online_scrapping module
 - **WARNING**: Change bidsize to bid_size and asksize to ask_size for consistency
 - **WARNING**: Add connection_lost parameter to on_error event to know if the connection needs to be reestablished.
-- **WARNING**: Add order_book_quotes parameter to on_personal_portfolio event to have the order book information available for all the assets in the personal portfolio.
+- **WARNING**: Add order_book_quotes parameter to on_personal_portfolio event to have the order book information available for all the assets in the personal portfolio
 
 0.1.1
 -----

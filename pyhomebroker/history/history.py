@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-from . import __user_agent__
+from ..common import user_agent
 
 import datetime
 
@@ -81,7 +81,7 @@ class History:
             raise SessionException('User is not logged in')
 
         headers = {
-            'User-Agent': __user_agent__,
+            'User-Agent': user_agent,
             'Accept-Encoding': 'gzip, deflate',
             'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -127,7 +127,7 @@ class History:
             raise SessionException('User is not logged in')
 
         headers = {
-            'User-Agent': __user_agent__,
+            'User-Agent': user_agent,
             'Accept-Encoding': 'gzip, deflate',
             'Content-Type': 'application/x-www-form-urlencoded'
         }

@@ -19,11 +19,11 @@
 # limitations under the License.
 #
 
-from . import __user_agent__
-from . import online_helper as helper
-from .exceptions import DataException, SessionException, ServerException
+from ..common import user_agent, DataException, SessionException, ServerException
+from .online_core import OnlineCore
 
 from threading import Thread, Event, Lock
+
 import requests as rq
 import pandas as pd
 import logging
@@ -33,7 +33,7 @@ from signalr import Connection
 
 import urllib.parse
 
-class OnlineSignalR:
+class OnlineSignalR(OnlineCore):
 
     __worker_thread = None
     __worker_thread_event = None
@@ -131,7 +131,7 @@ class OnlineSignalR:
             if self._proxies:
                 session.proxies.update(self._proxies)
 
-            session.headers = {'User-Agent':__user_agent__}
+            session.headers = {'User-Agent':user_agent}
 
             self._connection = Connection(url, session)
             self._hub = self._connection.register_hub('stockpriceshub')
@@ -275,10 +275,10 @@ class OnlineSignalR:
                 data_filter[item['Symbol'] + '-' + item['Term']] = item    
             data = list(data_filter.values())
             
-            df_portfolio = helper.process_personal_portfolio(data)
+            df_portfolio = self.process_personal_portfolio(data)
             ts_pp_process = time.time()
 
-            df_order_book = helper.process_order_books(data)
+            df_order_book = self.process_order_books(data)
             ts_ob_process = time.time()
             
             self._on_personal_portfolio(df_portfolio, df_order_book)
@@ -318,7 +318,7 @@ class OnlineSignalR:
             if len(df_repo) and self._on_repos:
                 ts = time.time()
                 
-                repos = helper.process_repos(df_repo)
+                repos = self.process_repos(df_repo)
                 ts_process = time.time()
                 
                 self._on_repos(repos)
@@ -332,7 +332,7 @@ class OnlineSignalR:
             if len(df_options) and self._on_options:
                 ts = time.time()
                 
-                options = helper.process_options(df_options)
+                options = self.process_options(df_options)
                 ts_process = time.time()
 
                 self._on_options(options)
@@ -346,7 +346,7 @@ class OnlineSignalR:
             if len(df_securities) and self._on_securities:
                 ts = time.time()
                 
-                securities = helper.process_securities(df_securities)
+                securities = self.process_securities(df_securities)
                 ts_process = time.time()
 
                 self._on_securities(securities)
@@ -377,7 +377,7 @@ class OnlineSignalR:
                 data_filter[item['Symbol'] + '-' + item['Term']] = item    
             data = list(data_filter.values())
             
-            order_books = helper.process_order_books(data)
+            order_books = self.process_order_books(data)
             ts_process = time.time()
 
             self._on_order_book(order_books)
