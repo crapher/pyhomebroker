@@ -164,7 +164,9 @@ The orders module is used to get information about the status of the orders oper
     orders = hb.orders.get_orders_status(14565)
 
     print(orders)
-	
+
+The file **[example_orders.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_orders.py)** shows a complete working out of the box example.
+
 ## Supported Brokers
 
 | Broker|Byma Id|
