@@ -74,5 +74,10 @@ brokers = [
     'broker_id': 209,
     'name': 'Futuro Bursátil S.A.',
     'page': 'https://homebroker.futurobursatil.com.ar'
+    },
+    {
+    'broker_id': 233,
+    'name': 'Sailing S.A.',
+    'page': 'https://login.sailinginversiones.com'
     }
 ]
