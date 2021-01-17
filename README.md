@@ -113,7 +113,7 @@ The file **[example_online.py](https://github.com/crapher/pyhomebroker/blob/mast
 
 ### History Module
 
-The history module is used to download historical daily data and historical intraday data (only for current day).
+The history module is used to download historical daily data and historical intraday data (only for the current day).
 
 Historical daily data example:
 
@@ -149,7 +149,7 @@ The file **[example_intraday_history.py](https://github.com/crapher/pyhomebroker
 
 ### Orders Module
 
-The orders module is used to get information about the status of the orders operated during the day.
+The orders module is used to get information about the status of the orders operated during the day, send sell and buy orders to the market, and cancel one or all the pending orders.
 
     from pyhomebroker import HomeBroker
 
@@ -162,10 +162,28 @@ The orders module is used to get information about the status of the orders oper
 
     # Get orders status for account 14565
     orders = hb.orders.get_orders_status(14565)
-
     print(orders)
 
-The file **[example_orders.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_orders.py)** shows a complete working out of the box example.
+	# Send a sell order to the market (Symbol: GGAL - Settlement: 48hs - Price: 120 - Size: 1)
+	order_number = hb.orders.send_sell_order('GGAL', '48hs', 120, 1)
+	print(order_number)
+
+	# Send a buy order to the market (Symbol: AAPL - Settlement: 48hs - Price: 1900 - Size: 1)
+	order_number = hb.orders.send_buy_order('AAPL', '24hs', 1900, 1)
+	print(order_number)
+	
+	# Cancel the order 1690496 for the account 14565
+	hb.orders.cancel_order(14565, 1690496)
+	
+	# Cancel all the orders for the account 14565
+	hb.orders.cancel_all_orders(14565)
+	
+The file **[example_orders.py](https://github.com/crapher/pyhomebroker/blob/master/examples/example_orders.py)** shows a complete working out of the box example.  
+All the operations that may affect the broker account (sell, buy, and cancel orders) are commented in the example.
+
+:warning: | The methods to send and cancel orders are still in alpha stage and <u>may have errors</u>.
+:---: | :---
+:exclamation: | It is **NOT** recommended to use them if you don't know enough about the market or you don't know python deeply.  If after this warning you decide to use them, welcome aboard and ***use them at your own risk***.
 
 ## Supported Brokers
 
@@ -209,7 +227,7 @@ Install development version of pyhomebroker from github:
 
 ## Legal
 
-See the file [LICENSE](https://github.com/crapher/pyhomebroker/blob/master/LICENSE) for our legal disclaimers of responsibility, fitness or merchantability of this library as well as your rights with regards to use of this library.  **pyhomebroker** is licensed under **Apache Software License**.
+See the file [LICENSE](https://github.com/crapher/pyhomebroker/blob/master/LICENSE) for our legal disclaimers of responsibility, fitness, or merchantability of this library as well as your rights with regards to the use of this library.  **pyhomebroker** is licensed under **Apache Software License**.
 
 ## Attributions and Trademarks
 

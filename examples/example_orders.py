@@ -32,3 +32,26 @@ hb.auth.login(dni=dni, user=user, password=password, raise_exception=True)
 
 orders = hb.orders.get_orders_status(account_id)
 print(orders)
+
+## Send a buy order to the market
+#symbol = input('Simbolo: ')
+#settlement = input('Vencimiento: ')
+#price = input('Precio: ')
+#size = input('Cantidad: ')
+#order_number = hb.orders.send_buy_order(symbol, settlement, float(price), int(size))
+#print(order_number)
+
+## Send a sell order to the market
+#symbol = input('Simbolo: ')
+#settlement = input('Vencimiento: ')
+#price = input('Precio: ')
+#size = input('Cantidad: ')
+#order_number = hb.orders.send_sell_order(symbol, settlement, float(price), int(size))
+#print(order_number)
+
+## Cancel an order
+#order_number = input('Order number: ')
+#hb.orders.cancel_order(account_id, order_number)
+
+## Cancel all the orders
+#hb.orders.cancel_all_orders(account_id)

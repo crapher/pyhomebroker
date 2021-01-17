@@ -19,7 +19,10 @@
 # limitations under the License.
 #
 
-from ..common import user_agent, convert_to_numeric_columns, SessionException, ServerException
+from ..common import user_agent, SessionException, ServerException, DataException
+
+from datetime import datetime, timedelta
+from threading import Lock
 
 import requests as rq
 import pandas as pd
@@ -31,6 +34,11 @@ class Orders:
         'Contado': 'spot',
         '24 Hs.': '24hs',
         '48 Hs.': '48hs'}
+        
+    __settlements_int_map = {
+        'spot': '1',
+        '24hs': '2',
+        '48hs': '3'}
 
     __order_status_map = {
         'Anulada': 'CANCELLED',
@@ -42,9 +50,11 @@ class Orders:
     }
     
     __orders_status_index = ['order_number']
-    __orders_status_columns = ['order_number', 'symbol', 'settlement', 'operation_type', 'size', 'price', 'remaining_size', 'datetime', 'status']
+    __orders_status_columns = ['order_number', 'symbol', 'settlement', 'operation_type', 'size', 'price', 'remaining_size', 'datetime', 'status', 'cancellable']
     __empty_orders_status = pd.DataFrame(columns=__orders_status_columns).set_index(__orders_status_index)
 
+    __orders_send_lock = Lock()
+    
     def __init__(self, auth, proxy_url=None):
         """
         Class constructor.
@@ -71,7 +81,7 @@ class Orders:
 ########################
     def get_orders_status(self, account_id):
         """
-        Returns the orders status.
+        Get the orders status.
 
         Parameters
         ----------
@@ -93,10 +103,170 @@ class Orders:
         """
 
         data = self.__get_orders_status(account_id)
-        data = data['Result'] if data and data['Result'] else None
+        orders = self.__filter_orders_from_json(data)
+        
+        return self.__process_orders(orders)
 
-        return self.__process_orders_status(data)
+    def send_buy_order(self, symbol, settlement, price, size):
+        """
+        Send a buy order to the market.
 
+        Parameters
+        ----------
+        symbol : str
+            The asset symbol.
+        settlement : str
+            The settlement of the board to be retrieved.
+            Valid values:
+                options: None or empty string.
+                rest of securities: spot, 24hs, 48hs.
+        price : numeric
+            The price to buy.
+        size : numeric
+            The quantity to buy.
+
+        Raises
+        ------
+        pyhomebroker.exceptions.SessionException
+            If the user is not logged in.
+        pyhomebroker.exceptions.ServerException
+            When the server returns an error in the response.
+        pyhomebroker.exceptions.DataException
+            When one of the parameters is invalid.
+        requests.exceptions.HTTPError
+            There is a problem related to the HTTP request.
+
+        Returns
+        -------
+        The order number.
+        """
+        
+        if size <= 0:
+            raise DataException('Size is not valid')
+        
+        with self.__orders_send_lock:
+            
+            self.__send_order_validation(symbol, settlement, price, size)  
+            return self.__send_order_confirmation()
+
+    def send_sell_order(self, symbol, settlement, price, size):
+        """
+        Send a sell order to the market.
+
+        Parameters
+        ----------
+        symbol : str
+            The asset symbol.
+        settlement : str
+            The settlement of the board to be retrieved.
+            Valid values:
+                options: None or empty string.
+                rest of securities: spot, 24hs, 48hs.
+        price : numeric
+            The price to sell.
+        size : numeric
+            The quantity to sell.
+
+        Raises
+        ------
+        pyhomebroker.exceptions.SessionException
+            If the user is not logged in.
+        pyhomebroker.exceptions.ServerException
+            When the server returns an error in the response.
+        pyhomebroker.exceptions.DataException
+            When one of the parameters is invalid.
+        requests.exceptions.HTTPError
+            There is a problem related to the HTTP request.
+
+        Returns
+        -------
+        The order number.
+        """
+        
+        if size <= 0:
+            raise DataException('Size is not valid')
+
+        with self.__orders_send_lock:
+            
+            self.__send_order_validation(symbol, settlement, price, -size)
+            return self.__send_order_confirmation()
+    
+    def cancel_order(self, account_id, order_number):
+        """
+        Cancel an order by number.
+
+        Parameters
+        ----------
+        account_id : str
+            The account identification used to retrieve the orders status.
+        order_number : numeric
+            The order number.
+
+        Raises
+        ------
+        pyhomebroker.exceptions.SessionException
+            If the user is not logged in.
+        pyhomebroker.exceptions.ServerException
+            When the server returns an error in the response.
+        pyhomebroker.exceptions.DataException
+            When one of the parameters is invalid.
+        requests.exceptions.HTTPError
+            There is a problem related to the HTTP request.
+        """
+        
+        data = self.__get_orders_status(account_id)
+        orders = self.__filter_orders_from_json(data)
+        
+        for order in orders:
+                                            
+            if order['NUME'] == str(order_number):
+                
+                if not order['CanCancel']:
+                    raise DataException("Order {} is not cancellable".format(order_number))
+                
+                with self.__orders_send_lock:
+                    
+                    self.__send_cancel_validation(order['CESP'], order['TICK'], order['CANT'], order['PCIO'], order['IMPO'], order['FVTO'], order['CPTE'], order['PLAZ'], order['NUME'])
+                    self.__send_cancel_confirmation()
+                
+                return
+                    
+        raise DataException("Order {} not found".format(order_number))
+                        
+    def cancel_all_orders(self, account_id):
+        """
+        Cancel all the cancellable orders.
+
+        Parameters
+        ----------
+        account_id : str
+            The account identification used to retrieve the orders status.
+       
+        Raises
+        ------
+        pyhomebroker.exceptions.SessionException
+            If the user is not logged in.
+        pyhomebroker.exceptions.ServerException
+            When the server returns an error in the response.
+        pyhomebroker.exceptions.DataException
+            When one of the parameters is invalid.
+        requests.exceptions.HTTPError
+            There is a problem related to the HTTP request.
+        """
+        
+        data = self.__get_orders_status(account_id)
+        orders = self.__filter_orders_from_json(data)
+        
+        for order in orders:
+            
+            if not order['CanCancel']:
+                continue
+                
+            with self.__orders_send_lock:
+                
+                self.__send_cancel_validation(order['CESP'], order['TICK'], order['CANT'], order['PCIO'], order['IMPO'], order['FVTO'], order['CPTE'], order['PLAZ'], order['NUME'])
+                self.__send_cancel_confirmation()
+                        
 #########################
 #### PRIVATE METHODS ####
 #########################
@@ -127,31 +297,45 @@ class Orders:
 
         if not response['Success']:
             raise ServerException(response['Error']['Descripcion'] or 'Unknown Error')
-
-        return response
         
-    def __process_orders_status(self, data):
+        if not response['Result']:
+            raise ServerException('Result not found')
+        
+        return response['Result']
     
-        if not data:
+    def __filter_orders_from_json(self, data):
+        
+        result = []
+        
+        for item in data:
+            
+            if 'listaDetalleTiker' in item and item['listaDetalleTiker']:
+                for detail in item['listaDetalleTiker']:
+                    
+                    result = result + detail['ORDE']
+
+        return result
+        
+    def __process_orders(self, orders):
+    
+        if not orders:
             return self.__empty_orders_status
     
-        filter_columns = ['NUME', 'TICK', 'PLAZ', 'TIPO', 'CANT', 'PCIO', 'REMN', 'FALT', 'ESTA']
+        filter_columns = ['NUME', 'TICK', 'PLAZ', 'TIPO', 'CANT', 'PCIO', 'REMN', 'FALT', 'ESTA', 'CanCancel']
         numeric_columns = ['order_number', 'size', 'price', 'remaining_size']
     
-        df = pd.DataFrame()   
-        for item in data:
-    
-            orders = item['listaDetalleTiker'][0]['ORDE'] if item['listaDetalleTiker'] and len(item['listaDetalleTiker']) > 0 and item['listaDetalleTiker'][0]['ORDE'] else []
-            for order in orders:
-    
-                df_order = pd.DataFrame([order])
-                df_order['REMN'] = pd.to_numeric(df_order.CANT)
-                if order['APLI']:
-                    df_operations = pd.DataFrame(order['APLI'])
-                    df_operations.CANT = pd.to_numeric(df_operations.CANT)
-                    df_order.REMN = df_order.REMN - df_operations.CANT.sum()
-    
-                df = df_order if df.empty else pd.concat([df, df_order])
+        df = pd.DataFrame()
+        
+        for order in orders:
+ 
+            df_order = pd.DataFrame([order])
+            df_order['REMN'] = pd.to_numeric(df_order.CANT)
+            if order['APLI']:
+                df_operations = pd.DataFrame(order['APLI'])
+                df_operations.CANT = pd.to_numeric(df_operations.CANT)
+                df_order.REMN = df_order.REMN - df_operations.CANT.sum()
+ 
+            df = df_order if df.empty else pd.concat([df, df_order])
     
         if not df.empty:
             df.FALT = pd.to_datetime(df.FALT, format='%d/%m/%y', errors='coerce') + pd.to_timedelta(df.HORA, errors='coerce')
@@ -163,10 +347,143 @@ class Orders:
             df = df[filter_columns].copy()
             df.columns = self.__orders_status_columns
     
-            df = convert_to_numeric_columns(df, numeric_columns)
+            for col in numeric_columns:
+                df[col] = pd.to_numeric(df[col].apply(lambda x: np.nan if x == '-' else x))
     
             df = df.set_index(self.__orders_status_index).sort_index()
         else:
             df = self.__empty_orders_status
     
         return df
+
+    def __send_order_validation(self, symbol, settlement, price, size):
+
+        if not self.__auth.is_user_logged_in:
+            raise SessionException('User is not logged in')
+
+        if price <= 0:
+            raise DataException('Price is not valid')
+        
+        if size != int(size):
+            raise DataException('Size is not valid')
+            
+        if len(symbol) == 10: # Options
+            settlement = '24hs'
+        
+        symbol = str.upper(symbol)
+        settlement = str.lower(settlement)
+        
+        if not (settlement in self.__settlements_int_map):
+            raise DataException('settlement is not valid')
+            
+        headers = {
+            'User-Agent': user_agent,
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+
+        url = '{}/Order/ValidarCargaOrdenAsync'.format(self.__auth.broker['page'])
+        
+        curr_time = datetime.utcnow() + timedelta(hours=-3)
+        date_valid = curr_time if curr_time.hour <= 17 else curr_time + timedelta(days=1)
+        
+        payload = {
+            'NombreEspecie': symbol,
+            'Cantidad': str(abs(size)),
+            'Precio': str(price).replace('.',','),
+            'Importe': '',
+            'DateValid': date_valid.strftime('%d/%m/%Y'),
+            'OptionTipo': 1 if size > 0 else 2,
+            'OptionTipoPlazo': self.__settlements_int_map[settlement]
+        }
+        
+        response = rq.post(url, json=payload, headers=headers, cookies=self.__auth.cookies, proxies=self.__proxies)
+        response.raise_for_status()
+
+        response = response.json()
+
+        if not response['Success']:
+            raise ServerException(response['Error']['Descripcion'] or 'Unknown Error')
+        
+        if not response['Result']['ResponseOrden']['Verified']:
+            raise ServerException(response['Result']['ResponseOrden']['ErrorMessage'] or 'Order not verified by server')
+        
+    def __send_order_confirmation(self):
+
+        if not self.__auth.is_user_logged_in:
+            raise SessionException('User is not logged in')
+
+        headers = {
+            'User-Agent': user_agent,
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+
+        url = '{}/Order/EnviarOrdenConfirmadaAsyc'.format(self.__auth.broker['page'])
+                
+        response = rq.post(url, headers=headers, cookies=self.__auth.cookies, proxies=self.__proxies)
+        response.raise_for_status()
+
+        response = response.json()
+
+        if not response['Success']:
+            raise ServerException(response['Error']['Descripcion'] or 'Unknown Error')
+        
+        if not response['Result']['ResponseOrden']['Accepted']:
+            raise ServerException('Order not accepted by server')
+        
+        return response['Result']['ResponseOrden']['Orden']['NroOrden']
+
+    def __send_cancel_validation(self, symbol_id, symbol, size, price, amount, date_valid, operation, settlement, order_number):
+        
+        if not self.__auth.is_user_logged_in:
+            raise SessionException('User is not logged in')
+
+        headers = {
+            'User-Agent': user_agent,
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+
+        url = '{}/Order/EnviarCancelacionAsyc'.format(self.__auth.broker['page'])
+        
+        payload = {
+            'especie': str(symbol_id),
+            'Ticker': symbol,
+            'Cantidad': '{:.2f}'.format(float(size)).replace('.',','),
+            'Precio': '{:.2f}'.format(float(price)).replace('.',','),
+            'Importe': '{:.2f}'.format(float(amount)).replace('.',','),
+            'DateValid': date_valid,
+            'OptionTipo': operation,
+            'OptionTipoPlazo': settlement,
+            'Numero': order_number,
+        }
+        
+        response = rq.post(url, json=payload, headers=headers, cookies=self.__auth.cookies, proxies=self.__proxies)
+        response.raise_for_status()
+
+        response = response.json()
+
+        if not response['Success']:
+            raise ServerException(response['Error']['Descripcion'] or 'Unknown Error')
+
+    def __send_cancel_confirmation(self):
+
+        if not self.__auth.is_user_logged_in:
+            raise SessionException('User is not logged in')
+
+        headers = {
+            'User-Agent': user_agent,
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+
+        url = '{}/Order/EnviarOrdenCanceladaAsyc'.format(self.__auth.broker['page'])
+                
+        response = rq.post(url, headers=headers, cookies=self.__auth.cookies, proxies=self.__proxies)
+        response.raise_for_status()
+
+        response = response.json()
+
+        if not response['Success']:
+            raise ServerException(response['Error']['Descripcion'] or 'Unknown Error')

@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+0.41
+---
+- Remove non needed methods from online module
+- Fix error on order status when the price has decimal number
+- Add the ability to send buy/sell orders to the market
+- Add the ability to cancel an order or all orders
+- Add "Sailing S.A." to supported brokers
+
 0.4
 ---
 - Sort code in folders based on functionality

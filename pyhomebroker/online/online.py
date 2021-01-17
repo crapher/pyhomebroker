@@ -460,31 +460,6 @@ class Online:
         group_name = '{}*{}*cj'.format(symbol, settlement)
         self._signalr.quit_group(group_name)
 
-    def get_orders_status(self, account_id):
-        """
-        Returns the orders status.
-
-        Parameters
-        ----------
-        account_id : str
-            The account identification used to retrieve the orders status.
-
-        Raises
-        ------
-        pyhomebroker.exceptions.SessionException
-            If the user is not logged in.
-        pyhomebroker.exceptions.ServerException
-            When the server returns an error in the response.
-        requests.exceptions.HTTPError
-            There is a problem related to the HTTP request.
-
-        Returns
-        -------
-        A dataframe with orders status.
-        """
-
-        return self._scrapping.get_orders_status(account_id)
-
 ###########################
 #### SIGNALR CALLBACKS ####
 ###########################
