@@ -187,11 +187,7 @@ class OnlineSignalR(OnlineCore):
         if self._on_close:
             self._on_close()
 
-        if self.__worker_thread_event and not self.__worker_thread_event.is_set():
-            self.__worker_thread_event.set()
-            self.__worker_thread.join()
-            self.__worker_thread_event = None
-            self.__worker_thread = None
+        self.__worker_thread_stop()
      
     def join_group(self, group_name):
         """
@@ -261,6 +257,14 @@ class OnlineSignalR(OnlineCore):
                 self.__order_book_queue = []
             self.__process_order_books(data)
 
+    def __worker_thread_stop(self):
+        
+        if self.__worker_thread_event and not self.__worker_thread_event.is_set():
+            self.__worker_thread_event.set()
+            self.__worker_thread.join()
+            self.__worker_thread_event = None
+            self.__worker_thread = None
+            
     def __process_personal_portfolio(self, data):
         
         try: #  Handle any exception processing the information or triggered by the user code
@@ -422,7 +426,9 @@ class OnlineSignalR(OnlineCore):
             self.__order_book_queue.extend(data)
  
     def __on_internal_exception(self, exception_type, value, traceback):
-
+        
+        self.__worker_thread_stop()
+        
         if self._on_error:
             try: # Catch user exceptions inside the except block (Inception Mode Activated :D)
                 self._on_error(exception_type(value), True)
