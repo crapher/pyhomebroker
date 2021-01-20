@@ -25,7 +25,7 @@ from .online_signalr import OnlineSignalR
 
 class Online:
 
-    __settlements_str = {
+    __settlements_str_map = {
         'spot': '1',
         '24hs': '2',
         '48hs': '3'}
@@ -542,7 +542,7 @@ class Online:
             except ValueError:
                 raise DataException('Invalid settlement for repo.  Settlement for repos should be a string with format %Y%m%d (YYYYMMDD)')
 
-        if not settlement_str or not (settlement_str.lower() in self.__settlements_str):
+        if not settlement_str or not (settlement_str.lower() in self.__settlements_str_map):
             raise DataException('Invalid settlement. Settlement for assets should be spot, 24hs or 48hs.')
 
-        return self.__settlements_str[settlement_str.lower()]
+        return self.__settlements_str_map[settlement_str.lower()]

@@ -29,12 +29,12 @@ import numpy as np
 
 class OnlineCore(object, metaclass=ABCMeta):
     
-    __settlements_int = {
+    __settlements_int_map = {
         '1': 'spot',
         '2': '24hs',
         '3': '48hs'}
 
-    __callput = {
+    __call_put_map = {
         0: '',
         1: 'CALL',
         2: 'PUT'}
@@ -90,8 +90,8 @@ class OnlineCore(object, metaclass=ABCMeta):
         df.loc[df.StrikePrice == 0, alpha_option_columns] = ''
         df.loc[df.StrikePrice == 0, numeric_options_columns] = np.nan
         df.MaturityDate = pd.to_datetime(df.MaturityDate, format='%Y%m%d', errors='coerce')
-        df.PutOrCall = df.PutOrCall.apply(lambda x: self.__callput[x] if x in self.__callput else self.__callput[0])
-        df.Term = df.Term.apply(lambda x: self.__settlements_int[x] if x in self.__settlements_int else '')
+        df.PutOrCall = df.PutOrCall.apply(lambda x: self.__call_put_map[x] if x in self.__call_put_map else self.__call_put_map[0])
+        df.Term = df.Term.apply(lambda x: self.__settlements_int_map[x] if x in self.__settlements_int_map else '')
 
         df = df[filter_columns].copy()
         df.columns = self.__personal_portfolio_columns
@@ -108,7 +108,7 @@ class OnlineCore(object, metaclass=ABCMeta):
 
         if not df.empty:
             df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
-            df.Term = df.Term.apply(lambda x: self.__settlements_int[x] if x in self.__settlements_int else '')
+            df.Term = df.Term.apply(lambda x: self.__settlements_int_map[x] if x in self.__settlements_int_map else '')
             df.Panel = df.Panel.apply(lambda x: self.__group_map[x] if x in self.__group_map else '')
 
             df = df[filter_columns].copy()
@@ -129,7 +129,7 @@ class OnlineCore(object, metaclass=ABCMeta):
         if not df.empty:
             df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')
             df.MaturityDate = pd.to_datetime(df.MaturityDate, format='%Y%m%d', errors='coerce')
-            df.PutOrCall = df.PutOrCall.apply(lambda x: self.__callput[x] if x in self.__callput else self.__callput[0])
+            df.PutOrCall = df.PutOrCall.apply(lambda x: self.__call_put_map[x] if x in self.__call_put_map else self.__call_put_map[0])
 
             df = df[filter_columns].copy()
             df.columns = self.__options_columns
@@ -169,7 +169,7 @@ class OnlineCore(object, metaclass=ABCMeta):
         df = pd.DataFrame(columns=self.__order_book_index)
         df.position = range(1, 6)
         df.symbol = name
-        df.settlement = self.__settlements_int[settlement] if settlement in self.__settlements_int else settlement
+        df.settlement = self.__settlements_int_map[settlement] if settlement in self.__settlements_int_map else settlement
 
         df_buy = df_buy[filter_buy_columns] if not df_buy.empty else pd.DataFrame(columns=filter_buy_columns)
         df_buy.columns = self.__order_book_buy_columns
