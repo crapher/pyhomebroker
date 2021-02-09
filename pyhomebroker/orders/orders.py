@@ -299,8 +299,8 @@ class Orders:
             raise ServerException(response['Error']['Descripcion'] or 'Unknown Error')
         
         if not response['Result']:
-            raise ServerException('Result not found')
-        
+            return [] # Response without result means that there are not orders in the list.
+                    
         return response['Result']
     
     def __filter_orders_from_json(self, data):
@@ -430,7 +430,7 @@ class Orders:
             raise ServerException(response['Error']['Descripcion'] or 'Unknown Error')
         
         if not response['Result']['ResponseOrden']['Accepted']:
-            raise ServerException('Order not accepted by server')
+            raise ServerException('Order not accepted by server.\nError Received from server: {}'.format(response['Result']['ResponseOrden']['ErrorMessage']))
         
         return response['Result']['ResponseOrden']['Orden']['NroOrden']
 
