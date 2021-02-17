@@ -19,6 +19,9 @@
 # limitations under the License.
 #
 
+from datetime import datetime
+import pandas as pd
+
 from ..common import DataException, SessionException, ServerException
 from .online_scrapping import OnlineScrapping
 from .online_signalr import OnlineSignalR
@@ -460,6 +463,52 @@ class Online:
         group_name = '{}*{}*cj'.format(symbol, settlement)
         self._signalr.quit_group(group_name)
 
+    def get_market_snapshot(self):
+        """
+        Get a snapshot of all the market boards.
+
+        Raises
+        ------
+        pyhomebroker.exceptions.SessionException
+            If the user is not logged in.
+        pyhomebroker.exceptions.ServerException
+            When the server returns an error in the response.
+        pyhomebroker.exceptions.DataException
+            When the board name or the settlement is not valid.
+        requests.exceptions.HTTPError
+            There is a problem related to the HTTP request.
+        
+        Returns
+        -------
+        A dictionary with the board dataframes. 
+        The key is the board name.
+        The value is the dataframe with the information
+        """
+        
+        boards = {}
+        
+        for board in ['bluechips', 'general_board', 'cedears', 'government_bonds', 'short_term_government_bonds', 'corporate_bonds']:
+            board_rq = self.get_board_for_request(board)
+            
+            data = {}
+            for settlement in ['spot','24hs','48hs']:
+                settlement_rq = self.get_settlement_for_request(settlement)
+                
+                data[settlement] = self._scrapping.get_securities(board_rq, settlement_rq)
+                data[settlement].reset_index(inplace=True)
+
+            boards[board] = pd.concat(data)
+            boards[board]['sort'] = boards[board]['settlement'] != 'spot'
+            boards[board] = boards[board].sort_values(by=['symbol','sort','settlement'])
+            boards[board] = boards[board].set_index(['symbol', 'settlement'])
+            boards[board].drop(['ask','ask_size','bid_size','bid','group','sort'], axis=1, inplace=True)
+
+        boards['options'] = self._scrapping.get_options()
+        boards['options'].drop(['ask','ask_size','bid_size','bid'], axis=1, inplace=True)
+        boards['options'] = boards['options'].sort_values(by=['symbol'])
+        
+        return boards
+            
 ###########################
 #### SIGNALR CALLBACKS ####
 ###########################

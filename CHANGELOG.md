@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+0.43
+---
+- Allow to download a market snapshot
+
+0.42
+---
+- Fix error when the operation requests a reconfirmation
+- Fix error when the system tries to cancel an operation in a currency that is not in AR$
+
 0.41
 ---
 - Remove non needed methods from online module

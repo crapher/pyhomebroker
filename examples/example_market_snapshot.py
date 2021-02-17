@@ -19,8 +19,21 @@
 # limitations under the License.
 #
 
-__version__ = '0.43'
-__author__ = 'Diego Degese'
+from datetime import datetime
+from pyhomebroker import HomeBroker
 
-from .home_broker import HomeBroker
+broker = input('Numero de Agente: ')
+dni = input('DNI: ')
+user = input('Usuario: ')
+password = input('Clave: ')
 
+hb = HomeBroker(int(broker))
+hb.auth.login(dni=dni, user=user, password=password, raise_exception=True)
+
+# Get the market snapshot
+snapshot = hb.online.get_market_snapshot()
+
+# Save each board with its settlements to a CSV file
+date = '{}'.format(datetime.now().strftime('%Y%m%d'))
+for board in snapshot:
+    snapshot[board].to_csv('{}_{}.csv'.format(date, board))
