@@ -53,7 +53,7 @@ brokers = [
     {
     'broker_id': 164,
     'name': 'Prosecurities S.A.',
-    'page': 'https://operar.psec.com.ar'
+    'page': 'http://operar.psec.com.ar'
     },
     {
     'broker_id': 186,
