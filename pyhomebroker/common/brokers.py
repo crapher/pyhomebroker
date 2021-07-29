@@ -79,5 +79,10 @@ brokers = [
     'broker_id': 233,
     'name': 'Sailing S.A.',
     'page': 'https://login.sailinginversiones.com'
+    },
+    {
+    'broker_id': 265,
+    'name': 'Negocios Financieros y Bursátiles S.A. (Cocos Capital)',
+    'page': 'https://cocoscap.com'
     }
 ]
