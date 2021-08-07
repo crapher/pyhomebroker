@@ -85,4 +85,9 @@ brokers = [
     'name': 'Negocios Financieros y Bursátiles S.A. (Cocos Capital)',
     'page': 'https://cocoscap.com'
     }
+    {
+    'broker_id': 299,
+    'name': 'InvertirOnline S.A.U',
+    'page': 'https://www.invertironline.com/'
+    }
 ]
