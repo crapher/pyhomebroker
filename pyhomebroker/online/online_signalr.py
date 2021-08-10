@@ -403,7 +403,10 @@ class OnlineSignalR(OnlineCore):
 #############################################
     def __internal_personal_portfolio(self, data):
 
-        if data and not isinstance(data, list):
+        if not data:
+            return
+            
+        if not isinstance(data, list):
             data = [data]
             
         with self.__personal_portfolio_queue_lock:
@@ -411,15 +414,21 @@ class OnlineSignalR(OnlineCore):
      
     def __internal_securities_options_repos(self, data):
 
-        if data and not isinstance(data, list):
+        if not data:
+            return
+
+        if not isinstance(data, list):
             data = [data]
             
         with self.__securities_options_repos_queue_lock:
             self.__securities_options_repos_queue.extend(data)
 
     def __internal_order_book(self, data):
-
-        if data and not isinstance(data, list):
+        
+        if not data:
+            return
+            
+        if not isinstance(data, list):
             data = [data]
             
         with self.__order_book_queue_lock:
