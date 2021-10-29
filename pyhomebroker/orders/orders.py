@@ -226,7 +226,7 @@ class Orders:
 
                 with self.__orders_send_lock:
 
-                    self.__send_cancel_validation(order['CESP'], order['TICK'], order['CANT'], order['PCIO'], order['IMPO'], order['FVTO'], order['CPTE'], order['PLAZ'], order['NUME'])
+                    self.__send_cancel_validation(order['CESP'], order['TICK'], order['CANT'], order['PCIO'], order['IMPO'], order['FVTO'], order['TIPO'], order['PLAZ'], order['NUME'])
                     self.__send_cancel_confirmation()
 
                 return
