@@ -24,6 +24,7 @@ from .common import user_agent, SessionException
 from pyquery import PyQuery as pq
 
 import requests as rq
+import json
 import pandas as pd
 import urllib.parse
 
@@ -86,23 +87,13 @@ class HomeBrokerSession:
         """
 
         try:
-            headers = {
-                'User-Agent': user_agent,
-                'Accept-Encoding': 'gzip, deflate',
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-
-            url = '{}/Login/Ingresar'.format(self.broker['page'])
-
-            payload = {
-                'IpAddress': self.__get_ipaddress(),
-                'Dni': dni,
-                'Usuario': user,
-                'Password': password}
-            payload = urllib.parse.urlencode(payload)
-
             with rq.Session() as sess:
-                response = sess.post(url, data=payload, headers=headers, proxies=self._proxies)
+
+                response = self.__perform_login_main(sess, dni, user, password)
+                
+                if response.status_code == 500: # Only check for Internal Server error to test the alternative login.  Otherwise, the error is valid.
+                    response = self.__perform_login_alternative(sess, dni, user, password)
+
                 response.raise_for_status()
 
                 doc = pq(response.text)
@@ -136,6 +127,48 @@ class HomeBrokerSession:
 #########################
 #### PRIVATE METHODS ####
 #########################
+    def __perform_login_main(self, sess, dni, user, password):
+        
+        headers = {
+            'User-Agent': user_agent,
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        url = '{}/Login/Ingresar'.format(self.broker['page'])
+
+        payload = {
+            'IpAddress': self.__get_ipaddress(),
+            'Dni': dni,
+            'Usuario': user,
+            'Password': password}
+            
+        payload = urllib.parse.urlencode(payload)
+
+        sess.cookies.clear()
+        return sess.post(url, data=payload, headers=headers, proxies=self._proxies)
+        
+    def __perform_login_alternative(self, sess, dni, user, password):
+        
+        headers = {
+            'User-Agent': user_agent,
+            'Accept-Encoding': 'gzip, deflate',
+            'Content-Type': 'application/json; charset=utf-8'
+        }
+
+        url = '{}/Login/IngresarModal'.format(self.broker['page'])
+
+        payload = {
+            'IpAddress': self.__get_ipaddress(),
+            'Dni': dni,
+            'Usuario': user,
+            'Password': password}
+            
+        payload = json.dumps(payload, separators=(',', ':'))
+        
+        sess.cookies.clear()
+        return sess.post(url, data=payload, headers=headers, proxies=self._proxies)
+
     def __get_ipaddress(self):
 
         if not self.__ipaddress:
