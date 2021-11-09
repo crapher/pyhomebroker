@@ -146,6 +146,8 @@ class HomeBrokerSession:
         payload = urllib.parse.urlencode(payload)
 
         sess.cookies.clear()
+        # Force to get the main page to retrieve any required cookie
+        sess.get(self.broker['page'], headers=headers, proxies=self._proxies)
         return sess.post(url, data=payload, headers=headers, proxies=self._proxies)
         
     def __perform_login_alternative(self, sess, dni, user, password):
@@ -167,6 +169,8 @@ class HomeBrokerSession:
         payload = json.dumps(payload, separators=(',', ':'))
         
         sess.cookies.clear()
+        # Force to get the main page to retrieve any required cookie
+        sess.get(self.broker['page'], headers=headers, proxies=self._proxies)
         return sess.post(url, data=payload, headers=headers, proxies=self._proxies)
 
     def __get_ipaddress(self):

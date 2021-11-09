@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-__version__ = '0.48'
+__version__ = '0.48.1'
 __author__ = 'Diego Degese'
 
 from .home_broker import HomeBroker
