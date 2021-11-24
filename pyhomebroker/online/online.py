@@ -520,16 +520,19 @@ class Online:
     def __internal_on_personal_portfolio(self, portfolio_quotes, order_book_quotes):
 
         if self._on_personal_portfolio and (not portfolio_quotes.empty or not order_book_quotes.empty):
+            portfolio_quotes = portfolio_quotes.drop('close', axis=1) # To keep compatibility in the fields returned
             self._on_personal_portfolio(self, portfolio_quotes, order_book_quotes)
 
     def __internal_on_securities(self, quotes):
 
         if self._on_securities and not quotes.empty:
+            quotes = quotes.drop('close', axis=1) # To keep compatibility in the fields returned
             self._on_securities(self, quotes)
 
     def __internal_on_options(self, quotes):
 
         if self._on_options and not quotes.empty:
+            quotes = quotes.drop('close', axis=1) # To keep compatibility in the fields returned
             self._on_options(self, quotes)
 
     def __internal_on_repos(self, quotes):

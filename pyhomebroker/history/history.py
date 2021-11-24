@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-from ..common import user_agent
+from ..common import user_agent, SessionException
 
 import datetime
 
