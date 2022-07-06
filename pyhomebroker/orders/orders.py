@@ -107,7 +107,7 @@ class Orders:
 
         return self.__process_orders(orders)
 
-    def send_buy_order(self, symbol, settlement, price, size):
+    def send_buy_order(self, symbol, settlement, price, size, market = 1, order_type = 2):
         """
         Send a buy order to the market.
 
@@ -124,6 +124,16 @@ class Orders:
             The price to buy.
         size : numeric
             The quantity to buy.
+        market : numeric
+            The market identificator.
+            Valid values:
+                1: Byma (default)
+                2: Rofex
+        order_type: numeric
+            The order type identificator.
+            Valid values:
+                1: Market
+                2: Limit (default)
 
         Raises
         ------
@@ -146,10 +156,10 @@ class Orders:
 
         with self.__orders_send_lock:
 
-            self.__send_order_validation(symbol, settlement, price, size)
+            self.__send_order_validation(symbol, settlement, price, size, market, order_type)
             return self.__send_order_confirmation()
 
-    def send_sell_order(self, symbol, settlement, price, size):
+    def send_sell_order(self, symbol, settlement, price, size, market = 1, order_type = 2):
         """
         Send a sell order to the market.
 
@@ -166,6 +176,16 @@ class Orders:
             The price to sell.
         size : numeric
             The quantity to sell.
+        market : numeric
+            The market identificator.
+            Valid values:
+                1: Byma (default)
+                2: Rofex
+        order_type: numeric
+            The order type identificator.
+            Valid values:
+                1: Market
+                2: Limit (default)
 
         Raises
         ------
@@ -188,7 +208,7 @@ class Orders:
 
         with self.__orders_send_lock:
 
-            self.__send_order_validation(symbol, settlement, price, -size)
+            self.__send_order_validation(symbol, settlement, price, -size, market, order_type)
             return self.__send_order_confirmation()
 
     def cancel_order(self, account_id, order_number):
@@ -356,8 +376,8 @@ class Orders:
 
         return df
 
-    def __send_order_validation(self, symbol, settlement, price, size):
-
+    def __send_order_validation(self, symbol, settlement, price, size, market, order_type):
+        
         if not self.__auth.is_user_logged_in:
             raise SessionException('User is not logged in')
 
@@ -394,7 +414,9 @@ class Orders:
             'Importe': '',
             'DateValid': date_valid.strftime('%d/%m/%Y'),
             'OptionTipo': 1 if size > 0 else 2,
-            'OptionTipoPlazo': self.__settlements_int_map[settlement]
+            'OptionTipoPlazo': self.__settlements_int_map[settlement],
+            'market': market,
+            'orderType': order_type
         }
 
         response = rq.post(url, json=payload, headers=headers, cookies=self.__auth.cookies, proxies=self.__proxies)
