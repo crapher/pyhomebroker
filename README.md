@@ -233,3 +233,11 @@ See the file [LICENSE](https://github.com/crapher/pyhomebroker/blob/master/LICEN
 ## Attributions and Trademarks
 
 Home Broker is trademark of Estudio Gallo S.R.L.
+
+## Contributors
+
+<a href="https://github.com/crapher/pyhomebroker/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=crapher/pyhomebroker" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
