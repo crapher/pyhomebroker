@@ -50,7 +50,7 @@ class Orders:
     }
 
     __orders_status_index = ['order_number']
-    __orders_status_columns = ['order_number', 'symbol', 'settlement', 'operation_type', 'size', 'price', 'remaining_size', 'datetime', 'status', 'cancellable']
+    __orders_status_columns = ['order_number', 'symbol', 'settlement', 'operation_type', 'size', 'price', 'remaining_size', 'datetime', 'status', 'cancellable', 'total']
     __empty_orders_status = pd.DataFrame(columns=__orders_status_columns).set_index(__orders_status_index)
 
     __orders_send_lock = Lock()
@@ -341,8 +341,8 @@ class Orders:
         if not orders:
             return self.__empty_orders_status
 
-        filter_columns = ['NUME', 'TICK', 'PLAZ', 'TIPO', 'CANT', 'PCIO', 'REMN', 'FALT', 'ESTA', 'CanCancel']
-        numeric_columns = ['order_number', 'size', 'price', 'remaining_size']
+        filter_columns = ['NUME', 'TICK', 'PLAZ', 'TIPO', 'CANT', 'PCIO', 'REMN', 'FALT', 'ESTA', 'CanCancel', 'TOTAL']
+        numeric_columns = ['order_number', 'size', 'price', 'remaining_size', 'total']
 
         df = pd.DataFrame()
 
@@ -350,10 +350,13 @@ class Orders:
 
             df_order = pd.DataFrame([order])
             df_order['REMN'] = pd.to_numeric(df_order.CANT)
+            df_order['TOTAL'] = pd.to_numeric(df_order.IMPO)
             if order['APLI']:
                 df_operations = pd.DataFrame(order['APLI'])
                 df_operations.CANT = pd.to_numeric(df_operations.CANT)
+                df_operations.IMPO = pd.to_numeric(df_operations.IMPO)
                 df_order.REMN = df_order.REMN - df_operations.CANT.sum()
+                df_order.TOTAL = df_operations.IMPO.sum()
 
             df = df_order if df.empty else pd.concat([df, df_order])
 
