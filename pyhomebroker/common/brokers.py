@@ -41,6 +41,10 @@ brokers = [
     'page': 'https://operar.bellbursatil.com'
     },
     {
+    'broker_id': 94,
+    'name': 'Soluciones Financieras S.A.',
+    'page': 'https://sistemag.solfin.com.ar'
+    },
     'broker_id': 127,
     'name': 'Maestro y Huerres S.A',
     'page': 'https://operar.maestroyhuerres.com'
