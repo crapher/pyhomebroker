@@ -60,7 +60,7 @@ class OnlineCore(object, metaclass=ABCMeta):
     __empty_options = pd.DataFrame(columns=__options_columns).set_index(__options_index)
 
     __repos_index = ['symbol', 'settlement']
-    __repos_columns = ['symbol', 'days', 'settlement', 'bid_amount', 'bid_rate', 'ask_rate', 'ask_amount', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime']
+    __repos_columns = ['symbol', 'days', 'settlement', 'bid_amount', 'bid_rate', 'ask_rate', 'ask_amount', 'last', 'change', 'open', 'high', 'low', 'previous_close', 'turnover', 'volume', 'operations', 'datetime', 'close']
     __empty_repos = pd.DataFrame(columns=__repos_columns).set_index(__repos_index)
 
     __order_book_index = ['symbol', 'settlement', 'position']
@@ -146,7 +146,7 @@ class OnlineCore(object, metaclass=ABCMeta):
     def process_repos(self, df):
 
         filter_columns = ['Symbol', 'CantDias', 'Term', 'BuyQuantity', 'BuyPrice', 'SellPrice', 'SellQuantity', 'LastPrice', 'VariationRate', 'StartPrice', 'MaxPrice', 'MinPrice', 'PreviousClose', 'TotalAmountTraded', 'TotalQuantityTraded', 'Trades', 'TradeDate', 'ClosePrice']
-        numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bid_amount', 'bid_rate', 'ask_rate', 'ask_amount', 'previous_close']
+        numeric_columns = ['last', 'open', 'high', 'low', 'volume', 'turnover', 'operations', 'change', 'bid_amount', 'bid_rate', 'ask_rate', 'ask_amount', 'previous_close', 'close']
 
         if not df.empty:
             df.TradeDate = pd.to_datetime(df.TradeDate, format='%Y%m%d', errors='coerce') + pd.to_timedelta(df.Hour, errors='coerce')

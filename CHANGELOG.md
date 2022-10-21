@@ -1,6 +1,52 @@
 Change Log
 ==========
 
+0.53
+---
+- Fix bug on gathering information from repos
+
+0.52
+---
+- Added SolFin to brokers list
+
+0.51
+---
+- Added total amount to the order df
+
+0.50
+---
+- Fix missing parameters sending validation orders
+
+0.49
+---
+- Fix SessionException reference
+- Add close price to boards in the market snapshot.
+
+0.48.1
+---
+Fix problem with login on homebroker version 1.12.1
+
+0.48
+---
+- Add alternative login method when the main login fails
+
+0.47
+---
+- Fix bug with order cancelation
+
+0.46
+---
+- Fix problem where data is None in the signalR events.
+
+0.45
+---
+- Add "Negocios Financieros y Bursátiles S.A. (Cocos Capital)" to supported brokers
+
+0.44
+---
+- Change PSEC URL because they started to use HTTP instead of HTTPS
+- Change PSEC broker id to the correct one
+
 0.43
 ---
 - Allow to download a market snapshot
