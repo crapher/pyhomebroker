@@ -89,5 +89,10 @@ brokers = [
     'broker_id': 265,
     'name': 'Negocios Financieros y Bursátiles S.A. (Cocos Capital)',
     'page': 'https://cocoscap.com'
+    },
+    {
+    'broker_id': 284,
+    'name': 'Veta Capital S.A.',
+    'page': 'http://cuentas.vetacapital.com.ar'
     }
 ]

@@ -203,6 +203,7 @@ All the operations that may affect the broker account (sell, buy, and cancel ord
 |Futuro Bursátil S.A.|209|
 |Sailing S.A.|233|
 |Negocios Financieros y Bursátiles S.A. (Cocos Capital)|265|
+|Veta Capital S.A.|284|
 
 ## Known Issues
 

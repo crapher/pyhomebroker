@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+0.54
+---
+- Added Veta Capital S.A. to brokers list
+
 0.53
 ---
 - Fix bug on gathering information from repos
