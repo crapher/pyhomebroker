@@ -94,5 +94,10 @@ brokers = [
     'broker_id': 284,
     'name': 'Veta Capital S.A.',
     'page': 'http://cuentas.vetacapital.com.ar'
+    },
+    {
+    'broker_id': 170,
+    'name': 'Eco Valores S.A.',
+    'page': 'http://www.ecobolsar.com'
     }
 ]
