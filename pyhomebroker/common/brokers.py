@@ -41,6 +41,11 @@ brokers = [
     'page': 'https://operar.bellbursatil.com'
     },
     {
+    'broker_id': 91,
+    'name': 'RIG Valores S.A.',
+    'page': 'https://rigvaloresweb.com/'
+    },
+    {
     'broker_id': 94,
     'name': 'Soluciones Financieras S.A.',
     'page': 'https://sistemag.solfin.com.ar'
