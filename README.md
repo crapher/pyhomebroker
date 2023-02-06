@@ -193,6 +193,7 @@ All the operations that may affect the broker account (sell, buy, and cancel ord
 |Proficio Investment S.A.|20|
 |Tomar Inversiones S.A.|81|
 |Bell Investments S.A.|88|
+|RIG Valores S.A.|91|
 |Soluciones Financieras S.A.|94|
 |Maestro y Huerres S.A.|127|
 |Bolsa de Comercio del Chaco|153|
