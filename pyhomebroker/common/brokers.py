@@ -53,7 +53,7 @@ brokers = [
     {
     'broker_id': 122,
     'name': 'Industrial Valores S.A.',
-    'page': 'https://inversiones.bind.com.ar/Clientes/'
+    'page': 'https://inversiones.bind.com.ar/Clientes'
     },
     {
     'broker_id': 127,
