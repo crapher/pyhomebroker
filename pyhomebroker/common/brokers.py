@@ -51,6 +51,11 @@ brokers = [
     'page': 'https://sistemag.solfin.com.ar'
     },
     {
+    'broker_id': 122,
+    'name': 'Industrial Valores S.A.',
+    'page': 'https://inversiones.bind.com.ar/Clientes'
+    },
+    {
     'broker_id': 127,
     'name': 'Maestro y Huerres S.A',
     'page': 'https://operar.maestroyhuerres.com'

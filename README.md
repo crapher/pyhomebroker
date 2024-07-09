@@ -195,6 +195,7 @@ All the operations that may affect the broker account (sell, buy, and cancel ord
 |Bell Investments S.A.|88|
 |RIG Valores S.A.|91|
 |Soluciones Financieras S.A.|94|
+|Industrial Valores S.A.|122|
 |Maestro y Huerres S.A.|127|
 |Bolsa de Comercio del Chaco|153|
 |Prosecurities S.A.|164|
