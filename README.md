@@ -1,3 +1,8 @@
+### ⚠ This project has been discontinued ⚠
+This repository is no longer maintained, and no further updates or support will be provided.
+
+---
+
 # Home Broker® API - Market and historical data downloader
 
 [![PyPI pyversions](https://img.shields.io/badge/python-3.6+-blue.svg?style=flat
